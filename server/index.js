@@ -22,6 +22,8 @@ app.use(express.json());
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/tutors', require('./routes/tutorRoutes'));
+app.use('/api/bookings', require('./routes/bookingRoutes'));
+app.use('/api/posts', require('./routes/postRoutes'));
 
 app.get('/', (req, res) => {
     res.send('Tutor Platform API is running');
