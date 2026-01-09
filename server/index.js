@@ -1,24 +1,26 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
-require('dotenv').config();
+const path = require('path');
+// Load env vars from the server directory
+require('dotenv').config({ path: path.join(__dirname, '.env') });
+const connectDB = require('./config/db');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+// Connect to Database
+connectDB();
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 
-// Routes (Placeholder)
+// Routes
+app.use('/api/auth', require('./routes/authRoutes'));
+
 app.get('/', (req, res) => {
     res.send('Tutor Platform API is running');
 });
-
-// Database Connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/tutor-platform')
-    .then(() => console.log('MongoDB Connected'))
-    .catch(err => console.log(err));
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
