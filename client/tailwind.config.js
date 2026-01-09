@@ -1,21 +1,8 @@
-/** @type {import('tailwindcss').Config} */
+// Tailwind config is now handled in index.css via @theme directive for v4
 export default {
-  content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
-  ],
+  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
-    extend: {
-      colors: {
-        primary: '#4F46E5', // Indigo-600
-        secondary: '#9333EA', // Purple-600
-        dark: '#111827', // Gray-900
-        light: '#F3F4F6', // Gray-100
-      },
-      fontFamily: {
-        sans: ['Inter', 'sans-serif'],
-      },
-    },
+    extend: {},
   },
   plugins: [],
 }
