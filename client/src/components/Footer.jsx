@@ -14,30 +14,30 @@ const Footer = () => {
                             <span className="font-bold text-xl text-dark">TutorPlatform</span>
                         </div>
                         <p className="text-gray-500 text-sm leading-relaxed">
-                            Empowering students to achieve their academic goals through personalized tutoring and cutting-edge resources.
+                            Quyết tâm hỗ trợ học sinh đạt được mục tiêu học tập thông qua gia sư cá nhân và tài liệu chất lượng cao.
                         </p>
                     </div>
 
                     <div>
-                        <h3 className="font-bold text-dark mb-4">Platform</h3>
+                        <h3 className="font-bold text-dark mb-4">Nền Tảng</h3>
                         <ul className="space-y-2 text-sm text-gray-600">
-                            <li><a href="#" className="hover:text-primary transition-colors">Find Tutors</a></li>
-                            <li><a href="#" className="hover:text-primary transition-colors">How it Works</a></li>
-                            <li><a href="#" className="hover:text-primary transition-colors">Pricing</a></li>
+                            <li><a href="#" className="hover:text-primary transition-colors">Tìm Gia Sư</a></li>
+                            <li><a href="#" className="hover:text-primary transition-colors">Hoạt Động Như Thế Nào</a></li>
+                            <li><a href="#" className="hover:text-primary transition-colors">Bảng Giá</a></li>
                         </ul>
                     </div>
 
                     <div>
-                        <h3 className="font-bold text-dark mb-4">Resources</h3>
+                        <h3 className="font-bold text-dark mb-4">Tài Nguyên</h3>
                         <ul className="space-y-2 text-sm text-gray-600">
-                            <li><a href="#" className="hover:text-primary transition-colors">Blog & Tips</a></li>
-                            <li><a href="#" className="hover:text-primary transition-colors">Exam Scores</a></li>
-                            <li><a href="#" className="hover:text-primary transition-colors">Community</a></li>
+                            <li><a href="#" className="hover:text-primary transition-colors">Blog & Mẹo Học Tập</a></li>
+                            <li><a href="#" className="hover:text-primary transition-colors">Tra Cứu Điểm Thi</a></li>
+                            <li><a href="#" className="hover:text-primary transition-colors">Cộng Đồng</a></li>
                         </ul>
                     </div>
 
                     <div>
-                        <h3 className="font-bold text-dark mb-4">Connect</h3>
+                        <h3 className="font-bold text-dark mb-4">Kết Nối</h3>
                         <div className="flex gap-4 mb-4">
                             <a href="#" className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center hover:bg-primary hover:text-white transition-all text-gray-600">
                                 <Facebook className="w-5 h-5" />
@@ -49,15 +49,15 @@ const Footer = () => {
                                 <Twitter className="w-5 h-5" />
                             </a>
                         </div>
-                        <p className="text-sm text-gray-500">Contact us at <br /> <span className="text-dark font-medium">support@tutorplatform.com</span></p>
+                        <p className="text-sm text-gray-500">Liên hệ chúng tôi: <br /> <span className="text-dark font-medium">support@tutorplatform.com</span></p>
                     </div>
                 </div>
 
                 <div className="pt-8 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
-                    <p className="text-sm text-gray-500">© 2026 TutorPlatform. All rights reserved.</p>
+                    <p className="text-sm text-gray-500">© 2026 TutorPlatform. Bảo lưu mọi quyền.</p>
                     <div className="flex gap-6 text-sm text-gray-500">
-                        <a href="#" className="hover:text-dark">Privacy Policy</a>
-                        <a href="#" className="hover:text-dark">Terms of Service</a>
+                        <a href="#" className="hover:text-dark">Chính Sách Bảo Mật</a>
+                        <a href="#" className="hover:text-dark">Điều Khoản Dịch Vụ</a>
                     </div>
                 </div>
             </div>
