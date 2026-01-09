@@ -2,7 +2,11 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 // Load env vars from the server directory
-require('dotenv').config({ path: path.join(__dirname, '.env') });
+const envPath = path.join(__dirname, '.env');
+console.log('Loading .env from:', envPath);
+require('dotenv').config({ path: envPath });
+console.log('MONGODB_URI:', process.env.MONGODB_URI ? 'Loaded' : 'Not Loaded');
+
 const connectDB = require('./config/db');
 
 const app = express();
@@ -17,6 +21,7 @@ app.use(express.json());
 
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));
+app.use('/api/tutors', require('./routes/tutorRoutes'));
 
 app.get('/', (req, res) => {
     res.send('Tutor Platform API is running');

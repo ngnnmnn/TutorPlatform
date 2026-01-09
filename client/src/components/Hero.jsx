@@ -18,32 +18,32 @@ const Hero = () => {
                     >
                         <div className="flex items-center gap-2 mb-6">
                             <span className="px-3 py-1 rounded-full bg-blue-100 text-primary text-sm font-semibold tracking-wide uppercase">
-                                #1 Learning Platform
+                                #1 Nền tảng Gia sư
                             </span>
                         </div>
                         <h1 className="text-5xl lg:text-7xl font-bold text-dark leading-tight mb-6">
-                            Master your <br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">Future Today</span>
+                            Kiến tạo <br />
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">Tương lai của Bạn</span>
                         </h1>
                         <p className="text-lg text-gray-600 mb-8 leading-relaxed max-w-lg">
-                            Connect with top-tier tutors, access premium resources, and track your progress. Education reimagined for the modern student.
+                            Kết nối với những gia sư hàng đầu, tiếp cận kho tài liệu phong phú và theo dõi sự tiến bộ của bạn. Học tập theo cách hoàn toàn mới.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4">
                             <button className="px-8 py-4 bg-primary text-white rounded-full font-bold text-lg shadow-xl shadow-primary/30 hover:shadow-2xl hover:-translate-y-1 transition-all flex items-center justify-center gap-2">
-                                Find a Tutor <ArrowRight className="w-5 h-5" />
+                                Tìm Gia Sư Ngay <ArrowRight className="w-5 h-5" />
                             </button>
                             <button className="px-8 py-4 bg-white text-dark border border-gray-200 rounded-full font-bold text-lg hover:border-primary/30 hover:bg-gray-50 transition-all">
-                                View Demo
+                                Xem Demo
                             </button>
                         </div>
                         <div className="mt-10 flex items-center gap-6 text-sm text-gray-500 font-medium">
                             <div className="flex items-center gap-2">
                                 <Star className="w-5 h-5 text-yellow-400 fill-current" />
-                                <span>4.9/5 Rating</span>
+                                <span>Đánh giá 4.9/5</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <Shield className="w-5 h-5 text-green-500" />
-                                <span>Verified Tutors</span>
+                                <span>Gia sư đã xác thực</span>
                             </div>
                         </div>
                     </motion.div>
@@ -71,8 +71,8 @@ const Hero = () => {
                                     <Clock className="w-6 h-6 text-green-600" />
                                 </div>
                                 <div>
-                                    <p className="text-xs text-gray-500 uppercase font-semibold">Study Time</p>
-                                    <p className="font-bold text-dark">2.5 hrs today</p>
+                                    <p className="text-xs text-gray-500 uppercase font-semibold">Thời gian học tập</p>
+                                    <p className="font-bold text-dark">2.5 giờ hôm nay</p>
                                 </div>
                             </motion.div>
 
@@ -85,15 +85,15 @@ const Hero = () => {
                                 <div className="flex items-center gap-3 mb-2">
                                     <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" className="w-10 h-10 rounded-full" alt="Tutor" />
                                     <div>
-                                        <p className="font-bold text-sm">Sarah C.</p>
-                                        <p className="text-xs text-secondary font-medium">Math Expert</p>
+                                        <p className="font-bold text-sm">Cô Mai</p>
+                                        <p className="text-xs text-secondary font-medium">Gia sư Toán</p>
                                     </div>
                                 </div>
                                 <div className="space-y-1">
                                     <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
                                         <div className="h-full bg-secondary w-3/4"></div>
                                     </div>
-                                    <p className="text-xs text-gray-500 text-right">Lesson complete!</p>
+                                    <p className="text-xs text-gray-500 text-right">Bài học hoàn thành!</p>
                                 </div>
                             </motion.div>
                         </div>
