@@ -1,5 +1,5 @@
 const Booking = require('../models/Booking');
-const Tutor = require('../models/TutorProfile');
+const Account = require('../models/Account');
 
 // @desc    Create a new booking
 // @route   POST /api/bookings
@@ -15,10 +15,10 @@ const createBooking = async (req, res) => {
             console.log("User invalid:", req.user); // JWT payload usually has 'id', let's check
         }
 
-        // Check if tutor exists
-        const tutor = await Tutor.findById(tutorId);
+        // Check if tutor exists (and is actually a tutor/approved)
+        const tutor = await Account.findById(tutorId);
 
-        if (!tutor) {
+        if (!tutor || !tutor.isApproved) {
             console.log("Tutor not found for ID:", tutorId);
             return res.status(404).json({ message: 'Tutor not found' });
         }
@@ -50,11 +50,8 @@ const getMyBookings = async (req, res) => {
         // Find bookings where the user is the student OR the tutor (if linked)
         // For simplicity, we assume the logged in user is the student for now
         const bookings = await Booking.find({ student: req.user._id })
-            .populate('tutor') // Populate tutor details
-            .populate({
-                path: 'tutor',
-                populate: { path: 'user', select: 'name email' } // Deep populate user in tutor
-            });
+            .populate('tutor', 'full_name email img bio') // Populate tutor details directly from Account
+            .populate('student', 'full_name email img'); // Also populate student details if needed
 
         res.json(bookings);
     } catch (error) {

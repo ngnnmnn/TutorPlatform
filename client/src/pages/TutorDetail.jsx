@@ -59,14 +59,14 @@ const TutorDetail = () => {
                     <div className="flex flex-col md:flex-row gap-8 items-start">
                         {/* Avatar */}
                         <div className="w-32 h-32 rounded-2xl bg-indigo-100 flex items-center justify-center text-5xl font-bold text-primary shadow-inner">
-                            {tutor.user.name.charAt(0)}
+                            {tutor.full_name?.charAt(0)}
                         </div>
 
                         {/* Basic Info */}
                         <div className="flex-1">
                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
                                 <div>
-                                    <h1 className="text-4xl font-bold text-dark mb-2">{tutor.user.name}</h1>
+                                    <h1 className="text-4xl font-bold text-dark mb-2">{tutor.full_name}</h1>
                                     <p className="text-lg text-gray-600 flex items-center gap-2">
                                         <Award className="w-5 h-5 text-primary" />
                                         {tutor.education?.degree} tại {tutor.education?.school}
@@ -220,7 +220,7 @@ const TutorDetail = () => {
             <BookingModal
                 isOpen={isBookingOpen}
                 onClose={() => setIsBookingOpen(false)}
-                tutorName={tutor.user.name}
+                tutorName={tutor.full_name}
                 hourlyRate={tutor.hourlyRate * 2} // Estimate for 2 hours
                 tutorId={tutor._id}
             />

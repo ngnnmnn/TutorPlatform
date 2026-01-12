@@ -7,8 +7,8 @@ const getPosts = async (req, res) => {
     try {
         const posts = await Post.find()
             .sort({ createdAt: -1 })
-            .populate('author', 'name role') // Populate author details
-            .populate('comments.user', 'name'); // Populate comment authors
+            .populate('author', 'full_name img') // Populate author details
+            .populate('comments.user', 'full_name img'); // Populate comment authors
 
         res.json(posts);
     } catch (error) {
@@ -38,7 +38,7 @@ const createPost = async (req, res) => {
             image
         });
 
-        const fullPost = await Post.findById(post._id).populate('author', 'name role');
+        const fullPost = await Post.findById(post._id).populate('author', 'full_name img');
 
         console.log("Post Created:", fullPost);
         res.status(201).json(fullPost);

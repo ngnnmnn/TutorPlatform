@@ -57,10 +57,10 @@ const Home = () => {
                                     <div className="flex items-center gap-4 mb-4">
                                         <div className="w-16 h-16 rounded-full bg-gray-100 overflow-visible flex items-center justify-center text-2xl font-bold text-primary uppercase">
                                             {/* Avatar placeholder if no image */}
-                                            {tutor.user.name.charAt(0)}
+                                            {tutor.full_name?.charAt(0)}
                                         </div>
                                         <div>
-                                            <h3 className="font-bold text-lg text-dark group-hover:text-primary transition-colors">{tutor.user.name}</h3>
+                                            <h3 className="font-bold text-lg text-dark group-hover:text-primary transition-colors">{tutor.full_name}</h3>
                                             <p className="text-sm text-gray-500">{tutor.education?.degree} tại {tutor.education?.school}</p>
                                         </div>
                                     </div>

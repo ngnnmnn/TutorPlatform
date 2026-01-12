@@ -4,7 +4,7 @@ const postSchema = mongoose.Schema({
     author: {
         type: mongoose.Schema.Types.ObjectId,
         required: true,
-        ref: 'User'
+        ref: 'Account'
     },
     content: {
         type: String,
@@ -15,12 +15,12 @@ const postSchema = mongoose.Schema({
     },
     likes: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
+        ref: 'Account'
     }],
     comments: [{
         user: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'User'
+            ref: 'Account'
         },
         text: String,
         createdAt: {

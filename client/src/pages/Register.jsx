@@ -3,32 +3,97 @@ import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { User, Mail, Lock, BookOpen } from 'lucide-react';
+import { User, Mail, Lock, BookOpen, MapPin, Phone, Image as ImageIcon } from 'lucide-react';
 
 const Register = () => {
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
-        name: '',
+        full_name: '',
         email: '',
+        username: '',
         password: '',
-        role: 'student'
+        address: '',
+        phone: '',
     });
+    const [file, setFile] = useState(null);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+
+    const validateForm = () => {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const phoneRegex = /(03|05|07|08|09|01[2|6|8|9])+([0-9]{8})\b/;
+        const fileRegex = /\.(jpg|jpeg|png)$/i;
+
+        if (!formData.full_name) return "Vui lòng nhập họ và tên";
+        if (!formData.email || !emailRegex.test(formData.email)) return "Email không hợp lệ";
+        if (!formData.username) return "Vui lòng nhập tên đăng nhập";
+        if (!formData.phone || !phoneRegex.test(formData.phone)) return "Số điện thoại không hợp lệ (VN)";
+        if (!formData.password) return "Vui lòng nhập mật khẩu";
+
+        if (file) {
+            if (!fileRegex.test(file.name)) {
+                return "Chỉ chấp nhận file ảnh (png, jpg, jpeg)";
+            }
+            // Optional: Check size (e.g. 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                return "File ảnh quá lớn (tối đa 5MB)";
+            }
+        }
+
+        return null;
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
         setError('');
 
+        const validationError = validateForm();
+        if (validationError) {
+            setError(validationError);
+            setLoading(false);
+            return;
+        }
+
         try {
-            const res = await axios.post('http://localhost:5000/api/auth/register', formData);
+            const data = new FormData();
+            data.append('full_name', formData.full_name);
+            data.append('email', formData.email);
+            data.append('username', formData.username);
+            data.append('password', formData.password);
+            data.append('address', formData.address);
+            data.append('phone', formData.phone);
+            data.append('role', 'student'); // Default role
+
+            if (file) {
+                data.append('img', file);
+            }
+
+            const res = await axios.post('http://localhost:5000/api/auth/register', data, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+
             localStorage.setItem('token', res.data.token);
             localStorage.setItem('user', JSON.stringify(res.data));
             window.location.href = '/';
         } catch (err) {
-            console.error(err);
-            setError(err.response?.data?.message || 'Đăng ký thất bại. Vui lòng thử lại.');
+            console.error("Registration Error:", err);
+            let errMsg = 'Đăng ký thất bại. Vui lòng thử lại.';
+
+            if (err.response) {
+                // Server responded with a status code
+                errMsg = err.response.data?.message || `Lỗi máy chủ (${err.response.status})`;
+            } else if (err.request) {
+                // request made but no response
+                errMsg = 'Không có phản hồi từ máy chủ. Vui lòng kiểm tra kết nối mạng.';
+            } else {
+                // something else happened
+                errMsg = err.message;
+            }
+
+            setError(errMsg);
         } finally {
             setLoading(false);
         }
@@ -39,9 +104,9 @@ const Register = () => {
             <Navbar />
 
             <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 pt-20 pb-12">
-                <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-2xl shadow-xl border border-gray-100">
+                <div className="max-w-2xl w-full space-y-8 bg-white p-8 rounded-2xl shadow-xl border border-gray-100">
                     <div className="text-center">
-                        <h2 className="text-3xl font-bold text-dark">Tạo tài khoản mới</h2>
+                        <h2 className="text-3xl font-bold text-dark">Tạo tài khoản học viên</h2>
                         <p className="mt-2 text-sm text-gray-600">
                             Bắt đầu hành trình học tập cùng TutorPlatform
                         </p>
@@ -54,8 +119,8 @@ const Register = () => {
                     )}
 
                     <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-                        <div className="space-y-4">
-                            <div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="md:col-span-2">
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Họ và Tên</label>
                                 <div className="relative">
                                     <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -64,8 +129,8 @@ const Register = () => {
                                         required
                                         className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
                                         placeholder="Nguyễn Văn A"
-                                        value={formData.name}
-                                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                        value={formData.full_name}
+                                        onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
                                     />
                                 </div>
                             </div>
@@ -86,6 +151,62 @@ const Register = () => {
                             </div>
 
                             <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Tên đăng nhập</label>
+                                <div className="relative">
+                                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                    <input
+                                        type="text"
+                                        required
+                                        className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                                        placeholder="username123"
+                                        value={formData.username}
+                                        onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Số điện thoại</label>
+                                <div className="relative">
+                                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                    <input
+                                        type="text"
+                                        className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                                        placeholder="0912..."
+                                        value={formData.phone}
+                                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Địa chỉ</label>
+                                <div className="relative">
+                                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                    <input
+                                        type="text"
+                                        className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                                        placeholder="Hà Nội, VN"
+                                        value={formData.address}
+                                        onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="md:col-span-2">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Ảnh đại diện</label>
+                                <div className="relative">
+                                    <ImageIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                    <input
+                                        type="file"
+                                        accept="image/png, image/jpeg, image/jpg"
+                                        className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                                        onChange={(e) => setFile(e.target.files[0])}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="md:col-span-2">
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Mật khẩu</label>
                                 <div className="relative">
                                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -97,28 +218,6 @@ const Register = () => {
                                         value={formData.password}
                                         onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                     />
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Bạn là?</label>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <button
-                                        type="button"
-                                        className={`p-3 rounded-xl border flex flex-col items-center justify-center gap-2 transition-all ${formData.role === 'student' ? 'border-primary bg-primary/5 text-primary' : 'border-gray-200 hover:border-gray-300'}`}
-                                        onClick={() => setFormData({ ...formData, role: 'student' })}
-                                    >
-                                        <BookOpen className="w-6 h-6" />
-                                        <span className="font-medium">Học sinh</span>
-                                    </button>
-                                    <button
-                                        type="button"
-                                        className={`p-3 rounded-xl border flex flex-col items-center justify-center gap-2 transition-all ${formData.role === 'tutor' ? 'border-primary bg-primary/5 text-primary' : 'border-gray-200 hover:border-gray-300'}`}
-                                        onClick={() => setFormData({ ...formData, role: 'tutor' })}
-                                    >
-                                        <User className="w-6 h-6" />
-                                        <span className="font-medium">Gia sư</span>
-                                    </button>
                                 </div>
                             </div>
                         </div>

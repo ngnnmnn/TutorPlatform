@@ -1,8 +1,9 @@
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const path = require('path');
-const User = require('./models/User');
-const TutorProfile = require('./models/TutorProfile');
+const Account = require('./models/Account');
+const Role = require('./models/Role');
+
 const bcrypt = require('bcryptjs');
 
 // Load env vars
@@ -23,39 +24,65 @@ const importData = async () => {
         await connectDB();
 
         // Clear existing data
-        await User.deleteMany();
-        await TutorProfile.deleteMany();
+        await Account.deleteMany();
+        await Role.deleteMany();
+
 
         console.log('Data Cleared...');
 
-        // Create Users
+        // 1. Create Roles
+        const createdRoles = await Role.insertMany([
+            { role_name: 'admin', description: 'Administrator with full access' },
+            { role_name: 'tutor', description: 'Tutor account' },
+            { role_name: 'student', description: 'Student account' }
+        ]);
+
+        const adminRole = createdRoles.find(r => r.role_name === 'admin');
+        const tutorRole = createdRoles.find(r => r.role_name === 'tutor');
+        const studentRole = createdRoles.find(r => r.role_name === 'student');
+
+        // 2. Create Accounts
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash('123456', salt);
 
-        const studentUser = await User.create({
-            name: 'Nguyễn Văn A',
+        // Admin Account
+        await Account.create({
+            roleID: adminRole._id,
+            full_name: 'Admin User',
+            email: 'admin@example.com',
+            address: 'Hanoi, Vietnam',
+            phone: '0901234567',
+            username: 'admin',
+            password: hashedPassword,
+            status: true,
+            img: 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png'
+        });
+
+        // Student Account
+        await Account.create({
+            roleID: studentRole._id,
+            full_name: 'Nguyen Van Student',
             email: 'student@example.com',
+            address: 'Da Nang, Vietnam',
+            phone: '0909876543',
+            username: 'student',
             password: hashedPassword,
-            role: 'student'
+            status: true,
+            img: 'https://cdn-icons-png.flaticon.com/512/3135/3135768.png'
         });
 
-        const tutorUser1 = await User.create({
-            name: 'Trần Thị Mai',
+        // Tutor Account 1
+        await Account.create({
+            roleID: tutorRole._id,
+            full_name: 'Tran Thi Mai',
             email: 'mai@example.com',
+            address: 'Ho Chi Minh City',
+            phone: '0912345678',
+            username: 'tutormai',
             password: hashedPassword,
-            role: 'tutor'
-        });
-
-        const tutorUser2 = await User.create({
-            name: 'Lê Hoàng Nam',
-            email: 'nam@example.com',
-            password: hashedPassword,
-            role: 'tutor'
-        });
-
-        // Create Tutor Profiles
-        await TutorProfile.create({
-            user: tutorUser1._id,
+            status: true,
+            img: 'https://cdn-icons-png.flaticon.com/512/3135/3135755.png',
+            // Tutor Profile Data
             bio: 'Gia sư Toán có kinh nghiệm 5 năm luyện thi đại học.',
             subjects: ['Toán', 'Giải tích', 'Đại số'],
             education: {
@@ -69,8 +96,18 @@ const importData = async () => {
             isApproved: true
         });
 
-        await TutorProfile.create({
-            user: tutorUser2._id,
+        // Tutor Account 2
+        await Account.create({
+            roleID: tutorRole._id,
+            full_name: 'Le Hoang Nam',
+            email: 'nam@example.com',
+            address: 'Hanoi, Vietnam',
+            phone: '0987123456',
+            username: 'tutornam',
+            password: hashedPassword,
+            status: true,
+            img: 'https://cdn-icons-png.flaticon.com/512/3135/3135789.png',
+            // Tutor Profile Data
             bio: 'Chuyên gia Vật lý, phương pháp dạy dễ hiểu, tận tâm.',
             subjects: ['Vật lý', 'Khoa học tự nhiên'],
             education: {
@@ -83,6 +120,27 @@ const importData = async () => {
             numReviews: 5,
             isApproved: true
         });
+
+        // Additional Student Accounts
+        const studentData = [
+            { name: 'Pham Minh Tuan', email: 'tuan@example.com', phone: '0911223344', user: 'student1' },
+            { name: 'Le Thi Hoa', email: 'hoa@example.com', phone: '0922334455', user: 'student2' },
+            { name: 'Tran Van Bao', email: 'bao@example.com', phone: '0933445566', user: 'student3' }
+        ];
+
+        for (const s of studentData) {
+            await Account.create({
+                roleID: studentRole._id,
+                full_name: s.name,
+                email: s.email,
+                address: 'Vietnam',
+                phone: s.phone,
+                username: s.user,
+                password: hashedPassword,
+                status: true,
+                img: 'https://cdn-icons-png.flaticon.com/512/3135/3135768.png'
+            });
+        }
 
         console.log('Data Imported Successfully!');
         process.exit();
