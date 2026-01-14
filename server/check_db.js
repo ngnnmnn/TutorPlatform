@@ -8,25 +8,19 @@ dotenv.config();
 
 const checkDB = async () => {
     try {
-        await mongoose.connect(process.env.MONGO_URI);
+        await mongoose.connect(process.env.MONGODB_URI);
         console.log('MongoDB Connected');
 
-        const latestRequest = await TutorRequest.findOne().sort({ createdAt: -1 });
+        const combos = await mongoose.connection.collection('combos').find().toArray();
+        console.log('Combos found:', combos.length);
+        console.log(JSON.stringify(combos, null, 2));
 
-        if (!latestRequest) {
-            console.log('No TutorRequests found.');
-        } else {
-            console.log('Latest Tutor Request:');
-            console.log(JSON.stringify(latestRequest, null, 2));
+        const tutors = await mongoose.connection.collection('accounts').find({ username: { $in: ['tutormai', 'tutornam'] } }).toArray();
+        const tutorIds = tutors.map(t => t._id);
 
-            const certs = await Certificate.find({ tutorrequestID: latestRequest._id });
-            console.log('Certificates:');
-            console.log(JSON.stringify(certs, null, 2));
-
-            const evs = await Evidence.find({ tutorrequestID: latestRequest._id });
-            console.log('Evidence:');
-            console.log(JSON.stringify(evs, null, 2));
-        }
+        const requests = await TutorRequest.find({ accountId: { $in: tutorIds } });
+        console.log('TutorRequests found for mai and nam:', requests.length);
+        console.log(JSON.stringify(requests, null, 2));
 
     } catch (err) {
         console.error(err);

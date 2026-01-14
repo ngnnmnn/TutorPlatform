@@ -4,6 +4,7 @@ import axios from 'axios';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { User, Lock, LogIn } from 'lucide-react';
+import loginBg from '../assets/login_bg.jpg';
 
 const Login = () => {
     const navigate = useNavigate();
@@ -34,11 +35,16 @@ const Login = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col">
+        <div
+            className="min-h-screen flex flex-col bg-blue-50 bg-cover bg-center bg-no-repeat relative"
+            style={{
+                backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url(${loginBg})`
+            }}
+        >
             <Navbar />
 
             <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 pt-20 pb-12">
-                <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-2xl shadow-xl border border-gray-100">
+                <div className="max-w-md w-full space-y-8 bg-white/95 backdrop-blur-sm p-8 rounded-2xl shadow-2xl border border-white/20">
                     <div className="text-center">
                         <h2 className="text-3xl font-bold text-dark">Đăng nhập tài khoản</h2>
                         <p className="mt-2 text-sm text-gray-600">

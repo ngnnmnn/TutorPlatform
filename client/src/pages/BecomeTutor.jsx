@@ -4,6 +4,8 @@ import Footer from '../components/Footer';
 import axios from 'axios';
 import { BookOpen, Upload, Plus, Trash, GraduationCap, FileText, CheckCircle, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import ReCAPTCHA from 'react-google-recaptcha';
+import { X } from 'lucide-react';
 
 const ScoreInput = ({ label, name, value, onChange }) => (
     <div className="flex flex-col">
@@ -46,6 +48,11 @@ const BecomeTutor = () => {
     // Evidence Files
     const [files, setFiles] = useState([]);
     const [previews, setPreviews] = useState([]);
+
+    // Terms and Captcha
+    const [showTerms, setShowTerms] = useState(false);
+    const [agreedTerms, setAgreedTerms] = useState(false);
+    const [captchaToken, setCaptchaToken] = useState(null);
 
     const handleScoreChange = (e) => {
         setScores({ ...scores, [e.target.name]: e.target.value });
@@ -95,6 +102,22 @@ const BecomeTutor = () => {
             }
 
             const formData = new FormData();
+
+            // Validate Terms and Captcha
+            if (!agreedTerms) {
+                setError('Vui lòng đồng ý với điều khoản Gia sư');
+                setLoading(false);
+                return;
+            }
+
+            // Validate Captcha
+            if (!captchaToken) {
+                setError('Vui lòng xác thực Captcha');
+                setLoading(false);
+                return;
+            }
+
+            formData.append('captchaToken', captchaToken);
 
             // Append Scores
             Object.keys(scores).forEach(key => {
@@ -287,6 +310,29 @@ const BecomeTutor = () => {
                             />
                         </div>
 
+                        {/* Terms and Captcha */}
+                        <div className="space-y-4 pt-4 border-t">
+                            <div className="flex items-start gap-3">
+                                <input
+                                    type="checkbox"
+                                    id="terms"
+                                    checked={agreedTerms}
+                                    onChange={(e) => setAgreedTerms(e.target.checked)}
+                                    className="mt-1 w-4 h-4 text-primary focus:ring-primary border-gray-300 rounded"
+                                />
+                                <label htmlFor="terms" className="text-sm text-gray-700">
+                                    Tôi đã đọc và đồng ý với <button type="button" onClick={() => setShowTerms(true)} className="text-primary font-bold hover:underline">Điều khoản dành cho Gia sư</button> của Website.
+                                </label>
+                            </div>
+
+                            <div className="flex justify-center md:justify-start">
+                                <ReCAPTCHA
+                                    sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY || "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"}
+                                    onChange={setCaptchaToken}
+                                />
+                            </div>
+                        </div>
+
                         {/* Submit Actions */}
                         <div className="flex justify-end pt-4">
                             <button
@@ -308,6 +354,70 @@ const BecomeTutor = () => {
                     </form>
                 </div>
             </div>
+
+
+
+            {/* Tutor Terms Modal */}
+            {showTerms && (
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl animate-fade-in">
+                        <div className="p-6 border-b flex justify-between items-center bg-gray-50 rounded-t-2xl">
+                            <h2 className="text-xl font-bold text-gray-800">Điều Khoản Dành Cho Gia Sư</h2>
+                            <button onClick={() => setShowTerms(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                                <X className="w-6 h-6" />
+                            </button>
+                        </div>
+                        <div className="p-6 overflow-y-auto prose prose-sm max-w-none text-gray-600">
+                            <h3>1. Phạm vi áp dụng</h3>
+                            <p>Điều khoản này áp dụng cho tất cả người dùng đăng ký tài khoản với vai trò Gia sư trên website TutorPlatform. Khi đăng ký, truy cập hoặc sử dụng Website với vai trò Gia sư, bạn được xem là đã đọc, hiểu và đồng ý với toàn bộ các điều khoản dưới đây.</p>
+
+                            <h3>2. Điều kiện trở thành Gia sư</h3>
+                            <p>Gia sư cam kết: Từ 18 tuổi trở lên, có đầy đủ năng lực hành vi dân sự, có kiến thức, kỹ năng phù hợp. Website có quyền yêu cầu xác minh thông tin và từ chối nếu không đáp ứng điều kiện.</p>
+
+                            <h3>3. Thông tin hồ sơ Gia sư</h3>
+                            <p>Gia sư có trách nhiệm cung cấp thông tin chính xác, trung thực (Họ tên, Trình độ, Kinh nghiệm, Môn học). Gia sư chịu trách nhiệm hoàn toàn về tính xác thực của thông tin.</p>
+
+                            <h3>4. Nghĩa vụ giảng dạy</h3>
+                            <p>Gia sư cam kết: Giảng dạy đúng nội dung, thời gian đã thỏa thuận. Có thái độ nghiêm túc, tôn trọng, không xúc phạm, quấy rối. Website không chịu trách nhiệm về chất lượng giảng dạy hay kết quả học tập.</p>
+
+                            <h3>5. Phí dịch vụ</h3>
+                            <p>Gia sư có thể phải trả phí giới thiệu, duy trì tài khoản hoặc hoa hồng (nếu áp dụng). Phí đã thanh toán không hoàn lại trừ trường hợp quy định khác.</p>
+
+                            <h3>6. Hủy lớp và vi phạm cam kết</h3>
+                            <p>Gia sư phải thông báo trước khi hủy lớp. Nếu hủy nhiều lần hoặc bị phản ánh tiêu cực, Website có quyền cảnh cáo, tạm khóa hoặc chấm dứt tài khoản.</p>
+
+                            <h3>7. Hành vi bị nghiêm cấm</h3>
+                            <p>Không cung cấp thông tin giả mạo, lừa đảo, tự ý thu phí trái thỏa thuận, quấy rối học viên, hoặc cố tình giao dịch ngoài nền tảng để trốn phí.</p>
+
+                            <h3>8. Quyền của Website</h3>
+                            <p>Website có quyền kiểm tra, xác minh hồ sơ, tạm khóa/xóa tài khoản vi phạm, và lưu trữ thông tin để quản lý.</p>
+
+                            <h3>9. Giới hạn trách nhiệm</h3>
+                            <p>Website không chịu trách nhiệm tranh chấp cá nhân, thiệt hại ngoài kiểm soát, hoặc kết quả học tập của học viên.</p>
+
+                            <h3>10. Chấm dứt tư cách Gia sư</h3>
+                            <p>Gia sư có thể chấm dứt tư cách bằng cách gửi yêu cầu và hoàn thành nghĩa vụ. Website có quyền chấm dứt nếu vi phạm.</p>
+
+                            <h3>11. Luật áp dụng</h3>
+                            <p>Điều khoản được điều chỉnh theo pháp luật Việt Nam. Tranh chấp giải quyết tại cơ quan có thẩm quyền tại Việt Nam.</p>
+
+                            <h3>12. Thông tin liên hệ</h3>
+                            <p>Email: admin@tutorplatform.com | Hotline: 1900 xxxx</p>
+                        </div>
+                        <div className="p-6 border-t bg-gray-50 rounded-b-2xl flex justify-end">
+                            <button
+                                onClick={() => {
+                                    setAgreedTerms(true);
+                                    setShowTerms(false);
+                                }}
+                                className="px-6 py-2 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-colors"
+                            >
+                                Tôi đồng ý
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <Footer />
         </div>

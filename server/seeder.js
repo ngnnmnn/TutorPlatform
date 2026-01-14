@@ -55,6 +55,7 @@ const importData = async () => {
             username: 'admin',
             password: hashedPassword,
             status: true,
+            isVerified: true,
             img: 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png'
         });
 
@@ -68,6 +69,7 @@ const importData = async () => {
             username: 'student',
             password: hashedPassword,
             status: true,
+            isVerified: true,
             img: 'https://cdn-icons-png.flaticon.com/512/3135/3135768.png'
         });
 
@@ -81,6 +83,7 @@ const importData = async () => {
             username: 'tutormai',
             password: hashedPassword,
             status: true,
+            isVerified: true,
             img: 'https://cdn-icons-png.flaticon.com/512/3135/3135755.png',
             // Tutor Profile Data
             bio: 'Gia sư Toán có kinh nghiệm 5 năm luyện thi đại học.',
@@ -106,6 +109,7 @@ const importData = async () => {
             username: 'tutornam',
             password: hashedPassword,
             status: true,
+            isVerified: true,
             img: 'https://cdn-icons-png.flaticon.com/512/3135/3135789.png',
             // Tutor Profile Data
             bio: 'Chuyên gia Vật lý, phương pháp dạy dễ hiểu, tận tâm.',
@@ -138,6 +142,7 @@ const importData = async () => {
                 username: s.user,
                 password: hashedPassword,
                 status: true,
+                isVerified: true,
                 img: 'https://cdn-icons-png.flaticon.com/512/3135/3135768.png'
             });
         }

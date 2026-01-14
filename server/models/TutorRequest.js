@@ -41,6 +41,10 @@ const tutorRequestSchema = new mongoose.Schema({
     Note: {
         type: String,
         default: ''
+    },
+    salary: {
+        type: Number,
+        default: 100000
     }
 });
 

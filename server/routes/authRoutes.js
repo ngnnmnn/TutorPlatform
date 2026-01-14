@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { registerUser, loginUser, getMe, updateUserProfile, createTutorRequest } = require('../controllers/authController');
+const { registerUser, loginUser, getMe, updateUserProfile, createTutorRequest, verifyEmail } = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
 const multer = require('multer');
 const path = require('path');
@@ -33,10 +33,17 @@ const upload = multer({
     }
 });
 
+// Define uploadFields for multiple fields
+const uploadFields = upload.fields([
+    { name: 'evidence', maxCount: 10 },
+    { name: 'img', maxCount: 1 } // Assuming 'img' might also be part of a multi-field upload if needed elsewhere
+]);
+
 router.post('/register', upload.single('img'), registerUser);
 router.post('/login', loginUser);
 router.get('/me', protect, getMe);
-router.put('/me', protect, upload.single('img'), updateUserProfile);
-router.post('/tutor-request', protect, upload.array('evidence', 10), createTutorRequest);
+router.put('/me', protect, upload.single('img'), updateUserProfile); // Update profile
+router.post('/tutor-request', protect, uploadFields, createTutorRequest); // Tutor/Upgrade Request
+router.get('/verify/:token', verifyEmail);
 
 module.exports = router;

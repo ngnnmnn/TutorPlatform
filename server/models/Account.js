@@ -44,6 +44,12 @@ const accountSchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     },
+    isVerified: {
+        type: Boolean,
+        default: false
+    },
+    verificationToken: String,
+    verificationTokenExpires: Date,
 
     // Tutor Specific Fields
     bio: {
