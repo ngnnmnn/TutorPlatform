@@ -4,12 +4,12 @@ const bookingSchema = mongoose.Schema({
     student: {
         type: mongoose.Schema.Types.ObjectId,
         required: true,
-        ref: 'User'
+        ref: 'Account'
     },
     tutor: {
         type: mongoose.Schema.Types.ObjectId,
         required: true,
-        ref: 'TutorProfile' // Changed from Tutor to match model name usually
+        ref: 'Account'
     },
     date: {
         type: Date,

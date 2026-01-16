@@ -1,5 +1,4 @@
-const TutorProfile = require('../models/TutorProfile');
-const User = require('../models/User');
+const Account = require('../models/Account');
 
 // @desc    Get all tutors with filters
 // @route   GET /api/tutors
@@ -8,20 +7,13 @@ const getTutors = async (req, res) => {
     try {
         const { keyword, subject, minPrice, maxPrice } = req.query;
 
+        // Base query: Only approved tutors (and potentially ensure they are tutors by role if needed)
+        // Since we merged, we can rely on isApproved=true which defaults to false for normal users
         let query = { isApproved: true };
 
-        // Search by name (via User model) or bio
         if (keyword) {
-            // 1. Find users matching the name
-            const matchingUsers = await User.find({
-                name: { $regex: keyword, $options: 'i' },
-                role: 'tutor'
-            }).select('_id');
-
-            const userIds = matchingUsers.map(user => user._id);
-
             query.$or = [
-                { user: { $in: userIds } },
+                { full_name: { $regex: keyword, $options: 'i' } },
                 { bio: { $regex: keyword, $options: 'i' } },
                 { subjects: { $regex: keyword, $options: 'i' } }
             ];
@@ -37,9 +29,9 @@ const getTutors = async (req, res) => {
             if (maxPrice) query.hourlyRate.$lte = Number(maxPrice);
         }
 
-        const tutors = await TutorProfile.find(query)
-            .populate('user', 'name avatar email') // Get user details
-            .sort({ rating: -1 }); // Sort by rating descending
+        const tutors = await Account.find(query)
+            .select('-password') // Exclude password
+            .sort({ rating: -1 });
 
         res.json(tutors);
     } catch (error) {
@@ -53,9 +45,9 @@ const getTutors = async (req, res) => {
 // @access  Public
 const getTutorById = async (req, res) => {
     try {
-        const tutor = await TutorProfile.findById(req.params.id).populate('user', 'name avatar email');
+        const tutor = await Account.findById(req.params.id).select('-password');
 
-        if (tutor) {
+        if (tutor && tutor.isApproved) {
             res.json(tutor);
         } else {
             res.status(404).json({ message: 'Tutor not found' });

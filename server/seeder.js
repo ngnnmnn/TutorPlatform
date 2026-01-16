@@ -1,14 +1,9 @@
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const path = require('path');
-<<<<<<< Updated upstream
-const User = require('./models/User');
-const TutorProfile = require('./models/TutorProfile');
-=======
 const Account = require('./models/Account');
-// Role is now embedded in Account model
+const Role = require('./models/Role');
 
->>>>>>> Stashed changes
 const bcrypt = require('bcryptjs');
 
 // Load env vars
@@ -29,30 +24,30 @@ const importData = async () => {
         await connectDB();
 
         // Clear existing data
-<<<<<<< Updated upstream
-        await User.deleteMany();
-        await TutorProfile.deleteMany();
-
-        console.log('Data Cleared...');
-
-        // Create Users
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash('123456', salt);
-
-        const studentUser = await User.create({
-            name: 'Nguyễn Văn A',
-=======
         await Account.deleteMany();
+        await Role.deleteMany();
+
 
         console.log('Data Cleared...');
 
-        // Create Accounts
+        // 1. Create Roles
+        const createdRoles = await Role.insertMany([
+            { role_name: 'admin', description: 'Administrator with full access' },
+            { role_name: 'tutor', description: 'Tutor account' },
+            { role_name: 'student', description: 'Student account' }
+        ]);
+
+        const adminRole = createdRoles.find(r => r.role_name === 'admin');
+        const tutorRole = createdRoles.find(r => r.role_name === 'tutor');
+        const studentRole = createdRoles.find(r => r.role_name === 'student');
+
+        // 2. Create Accounts
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash('123456', salt);
 
         // Admin Account
         await Account.create({
-            role: 'admin',
+            roleID: adminRole._id,
             full_name: 'Admin User',
             email: 'admin@example.com',
             address: 'Hanoi, Vietnam',
@@ -66,38 +61,31 @@ const importData = async () => {
 
         // Student Account
         await Account.create({
-            role: 'student',
+            roleID: studentRole._id,
             full_name: 'Nguyen Van Student',
->>>>>>> Stashed changes
             email: 'student@example.com',
+            address: 'Da Nang, Vietnam',
+            phone: '0909876543',
+            username: 'student',
             password: hashedPassword,
-            role: 'student'
+            status: true,
+            isVerified: true,
+            img: 'https://cdn-icons-png.flaticon.com/512/3135/3135768.png'
         });
 
-<<<<<<< Updated upstream
-        const tutorUser1 = await User.create({
-            name: 'Trần Thị Mai',
-=======
         // Tutor Account 1
         await Account.create({
-            role: 'tutor',
+            roleID: tutorRole._id,
             full_name: 'Tran Thi Mai',
->>>>>>> Stashed changes
             email: 'mai@example.com',
+            address: 'Ho Chi Minh City',
+            phone: '0912345678',
+            username: 'tutormai',
             password: hashedPassword,
-            role: 'tutor'
-        });
-
-        const tutorUser2 = await User.create({
-            name: 'Lê Hoàng Nam',
-            email: 'nam@example.com',
-            password: hashedPassword,
-            role: 'tutor'
-        });
-
-        // Create Tutor Profiles
-        await TutorProfile.create({
-            user: tutorUser1._id,
+            status: true,
+            isVerified: true,
+            img: 'https://cdn-icons-png.flaticon.com/512/3135/3135755.png',
+            // Tutor Profile Data
             bio: 'Gia sư Toán có kinh nghiệm 5 năm luyện thi đại học.',
             subjects: ['Toán', 'Giải tích', 'Đại số'],
             education: {
@@ -111,13 +99,9 @@ const importData = async () => {
             isApproved: true
         });
 
-<<<<<<< Updated upstream
-        await TutorProfile.create({
-            user: tutorUser2._id,
-=======
         // Tutor Account 2
         await Account.create({
-            role: 'tutor',
+            roleID: tutorRole._id,
             full_name: 'Le Hoang Nam',
             email: 'nam@example.com',
             address: 'Hanoi, Vietnam',
@@ -128,7 +112,6 @@ const importData = async () => {
             isVerified: true,
             img: 'https://cdn-icons-png.flaticon.com/512/3135/3135789.png',
             // Tutor Profile Data
->>>>>>> Stashed changes
             bio: 'Chuyên gia Vật lý, phương pháp dạy dễ hiểu, tận tâm.',
             subjects: ['Vật lý', 'Khoa học tự nhiên'],
             education: {
@@ -142,8 +125,6 @@ const importData = async () => {
             isApproved: true
         });
 
-<<<<<<< Updated upstream
-=======
         // Additional Student Accounts
         const studentData = [
             { name: 'Pham Minh Tuan', email: 'tuan@example.com', phone: '0911223344', user: 'student1' },
@@ -153,7 +134,7 @@ const importData = async () => {
 
         for (const s of studentData) {
             await Account.create({
-                role: 'student',
+                roleID: studentRole._id,
                 full_name: s.name,
                 email: s.email,
                 address: 'Vietnam',
@@ -166,7 +147,6 @@ const importData = async () => {
             });
         }
 
->>>>>>> Stashed changes
         console.log('Data Imported Successfully!');
         process.exit();
     } catch (error) {

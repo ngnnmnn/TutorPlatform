@@ -32,12 +32,16 @@ const Navbar = () => {
 
                         {user ? (
                             <div className="flex items-center gap-4">
-                                <div className="flex items-center gap-2">
-                                    <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-primary font-bold">
-                                        {user.name.charAt(0)}
+                                <Link to="/profile" className="flex items-center gap-2 hover:bg-gray-50 rounded-lg p-1 transition-colors">
+                                    <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-primary font-bold overflow-hidden">
+                                        {user.img ? (
+                                            <img src={user.img} alt={user.name} className="w-full h-full object-cover" />
+                                        ) : (
+                                            user.name?.charAt(0) || 'U'
+                                        )}
                                     </div>
-                                    <span className="font-medium text-dark">{user.name}</span>
-                                </div>
+                                    <span className="font-medium text-dark">{user.name || 'User'}</span>
+                                </Link>
                                 <button
                                     onClick={handleLogout}
                                     className="text-sm text-gray-500 hover:text-red-500 font-medium transition-colors"
@@ -80,12 +84,16 @@ const Navbar = () => {
 
                             {user ? (
                                 <div className="pt-4 border-t border-gray-100">
-                                    <div className="flex items-center gap-3 px-3 py-2">
-                                        <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-primary font-bold">
-                                            {user.name.charAt(0)}
+                                    <Link to="/profile" className="flex items-center gap-3 px-3 py-2 hover:bg-gray-50 rounded-md">
+                                        <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-primary font-bold overflow-hidden">
+                                            {user.img ? (
+                                                <img src={user.img} alt={user.name} className="w-full h-full object-cover" />
+                                            ) : (
+                                                user.name?.charAt(0) || 'U'
+                                            )}
                                         </div>
-                                        <span className="font-medium text-dark">{user.name}</span>
-                                    </div>
+                                        <span className="font-medium text-dark">{user.name || 'User'}</span>
+                                    </Link>
                                     <button
                                         onClick={handleLogout}
                                         className="w-full text-left px-3 py-2 text-red-500 font-medium hover:bg-gray-50 rounded-md"

@@ -1,11 +1,10 @@
 const mongoose = require('mongoose');
 
 const accountSchema = new mongoose.Schema({
-    role: {
-        type: String,
-        required: true,
-        enum: ['admin', 'tutor', 'student'],
-        default: 'student'
+    roleID: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Role',
+        required: true
     },
     full_name: {
         type: String,

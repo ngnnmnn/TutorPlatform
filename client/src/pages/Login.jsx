@@ -3,12 +3,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { Mail, Lock, LogIn } from 'lucide-react';
+import { User, Lock, LogIn } from 'lucide-react';
+import loginBg from '../assets/login_bg.jpg';
 
 const Login = () => {
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
-        email: '',
+        username: '',
         password: ''
     });
     const [error, setError] = useState('');
@@ -23,7 +24,7 @@ const Login = () => {
             const res = await axios.post('http://localhost:5000/api/auth/login', formData);
             localStorage.setItem('token', res.data.token);
             localStorage.setItem('user', JSON.stringify(res.data));
-            // Navigate to home and force refresh to update auth state (simple approach)
+            // Navigate to home and force refresh to update auth state
             window.location.href = '/';
         } catch (err) {
             console.error(err);
@@ -34,11 +35,16 @@ const Login = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col">
+        <div
+            className="min-h-screen flex flex-col bg-blue-50 bg-cover bg-center bg-no-repeat relative"
+            style={{
+                backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url(${loginBg})`
+            }}
+        >
             <Navbar />
 
             <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 pt-20 pb-12">
-                <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-2xl shadow-xl border border-gray-100">
+                <div className="max-w-md w-full space-y-8 bg-white/95 backdrop-blur-sm p-8 rounded-2xl shadow-2xl border border-white/20">
                     <div className="text-center">
                         <h2 className="text-3xl font-bold text-dark">Đăng nhập tài khoản</h2>
                         <p className="mt-2 text-sm text-gray-600">
@@ -55,16 +61,16 @@ const Login = () => {
                     <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
                         <div className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Tên đăng nhập</label>
                                 <div className="relative">
-                                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                                     <input
-                                        type="email"
+                                        type="text"
                                         required
                                         className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
-                                        placeholder="vidu@gmail.com"
-                                        value={formData.email}
-                                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                        placeholder="username"
+                                        value={formData.username}
+                                        onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                                     />
                                 </div>
                             </div>

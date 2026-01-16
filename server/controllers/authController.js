@@ -1,35 +1,84 @@
-<<<<<<< Updated upstream
-const User = require('../models/User');
-=======
 const Account = require('../models/Account');
-// Role is now embedded in Account model as a string enum
+const Role = require('../models/Role');
 const TutorRequest = require('../models/TutorRequest');
 const Evidence = require('../models/Evidence');
 const Certificate = require('../models/Certificate');
->>>>>>> Stashed changes
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
+const axios = require('axios');
+const sendEmail = require('../utils/sendEmail');
+const fs = require('fs');
+const path = require('path');
 
 // Generate JWT
-const generateToken = (id, role) => {
-    return jwt.sign({ id, role }, process.env.JWT_SECRET, {
+const generateToken = (id, roleName) => {
+    return jwt.sign({ id, role: roleName }, process.env.JWT_SECRET || 'fallback_secret_key_123', {
         expiresIn: '30d',
     });
 };
 
-// @desc    Register new user
+// Helper to delete file
+const deleteFile = (filePath) => {
+    if (filePath && fs.existsSync(filePath)) {
+        try {
+            fs.unlinkSync(filePath);
+        } catch (err) {
+            console.error("Error deleting file:", err);
+        }
+    }
+};
+
+// @desc    Register new account
 // @route   POST /api/auth/register
 // @access  Public
 const registerUser = async (req, res) => {
-    const { name, email, password, role } = req.body;
+    const {
+        full_name,
+        email,
+        address,
+        phone,
+        username,
+        password,
+        role,
+        captchaToken // Recaptcha token from client
+    } = req.body;
+
+    // Validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const phoneRegex = /(03|05|07|08|09|01[2|6|8|9])+([0-9]{8})\b/;
+
+    if (!emailRegex.test(email)) {
+        return res.status(400).json({ message: 'Email không đúng định dạng' });
+    }
+
+    if (!phoneRegex.test(phone)) {
+        return res.status(400).json({ message: 'Số điện thoại không hợp lệ (VN)' });
+    }
+
+    // Verify Captcha
+    if (!captchaToken) {
+        return res.status(400).json({ message: 'Vui lòng hoàn thành Captcha' });
+    }
 
     try {
-        const userExists = await User.findOne({ email });
+        const recaptchaSecret = process.env.RECAPTCHA_SECRET_KEY;
+        // If not set, maybe skip for dev? but better to enforce or mock. 
+        // For now assuming it is set or we handle error.
+        if (recaptchaSecret) {
+            const verifyUrl = `https://www.google.com/recaptcha/api/siteverify?secret=${recaptchaSecret}&response=${captchaToken}`;
+            const recaptchaRes = await axios.post(verifyUrl);
+            if (!recaptchaRes.data.success) {
+                if (req.file) deleteFile(req.file.path);
+                return res.status(400).json({ message: 'Captcha không hợp lệ, vui lòng thử lại' });
+            }
+        }
+    } catch (err) {
+        console.error("Recaptcha Error:", err);
+        if (req.file) deleteFile(req.file.path);
+        return res.status(500).json({ message: 'Lỗi xác thực Captcha' });
+    }
 
-<<<<<<< Updated upstream
-        if (userExists) {
-            return res.status(400).json({ message: 'User already exists' });
-=======
     // Handle Image Upload
     let imgPath = '';
     if (req.file) {
@@ -61,23 +110,18 @@ const registerUser = async (req, res) => {
             return res.status(400).json({ message: 'Số điện thoại đã tồn tại' });
         }
 
-        // Validate Role
-        const validRoles = ['admin', 'tutor', 'student'];
-        const accountRole = role || 'student';
-        if (!validRoles.includes(accountRole)) {
-            if (req.file) deleteFile(req.file.path);
+        // Handle Role
+        const roleName = role || 'student';
+        let roleDoc = await Role.findOne({ role_name: roleName });
+
+        if (!roleDoc) {
             return res.status(400).json({ message: 'Invalid role' });
->>>>>>> Stashed changes
         }
 
         // Hash password
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-<<<<<<< Updated upstream
-        const user = await User.create({
-            name,
-=======
         // Generate Verification Token
         const verificationToken = crypto.randomBytes(20).toString('hex');
         const verificationTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
@@ -85,27 +129,65 @@ const registerUser = async (req, res) => {
         console.log(`Generated verification token for ${email}: ${verificationToken}`);
 
         const account = await Account.create({
-            role: accountRole,
+            roleID: roleDoc._id,
             full_name,
->>>>>>> Stashed changes
             email,
+            address,
+            phone,
+            username,
             password: hashedPassword,
-            role: role || 'student'
+            img: imgPath || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png', // Default avatar
+            status: true,
+            isVerified: false, // Not verified yet
+            verificationToken,
+            verificationTokenExpires
         });
 
-        if (user) {
-            res.status(201).json({
-                _id: user._id,
-                name: user.name,
-                email: user.email,
-                role: user.role,
-                token: generateToken(user._id, user.role),
-            });
+        if (account) {
+            // Send Verification Email
+            const verificationUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/verify/${verificationToken}`;
+
+            const message = `
+                <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+                    <h1 style="color: #4F46E5;">Xác thực Email của bạn</h1>
+                    <p>Cảm ơn bạn đã đăng ký tài khoản tại <strong>TutorPlatform</strong>.</p>
+                    <p>Vui lòng click vào nút bên dưới để xác thực email và hoàn tất đăng ký:</p>
+                    <div style="margin: 30px 0;">
+                        <a href="${verificationUrl}" style="background-color: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">Verify Email</a>
+                    </div>
+                    <p style="font-size: 14px; color: #666;">Link này sẽ hết hạn sau 24 giờ.</p>
+                    <p style="font-size: 12px; color: #999; margin-top: 30px;">Nếu nút trên không hoạt động, hãy copy link này: ${verificationUrl}</p>
+                </div>
+            `;
+
+            try {
+                await sendEmail({
+                    email: account.email,
+                    subject: 'Xác thực tài khoản TutorPlatform',
+                    message
+                });
+
+                res.status(201).json({
+                    message: 'Đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản.',
+                    success: true
+                });
+            } catch (error) {
+                console.error("Email send error:", error);
+                // Even if email fails, account is created. Maybe returning a warning?
+                // Or deleting the account? 
+                // For now, let's keep it but tell user.
+                res.status(201).json({
+                    message: 'Đăng ký thành công nhưng không thể gửi email xác thực. Vui lòng liên hệ admin.',
+                    success: true
+                });
+            }
         } else {
-            res.status(400).json({ message: 'Invalid user data' });
+            if (req.file) deleteFile(req.file.path);
+            res.status(400).json({ message: 'Invalid account data' });
         }
     } catch (error) {
         console.error(error);
+        if (req.file) deleteFile(req.file.path);
         res.status(500).json({ message: 'Server Error' });
     }
 };
@@ -114,13 +196,10 @@ const registerUser = async (req, res) => {
 // @route   POST /api/auth/login
 // @access  Public
 const loginUser = async (req, res) => {
-    const { email, password } = req.body;
+    const { username, password } = req.body;
 
     try {
-<<<<<<< Updated upstream
-        const user = await User.findOne({ email });
-=======
-        const account = await Account.findOne({ username });
+        const account = await Account.findOne({ username }).populate('roleID');
 
         if (account && (await bcrypt.compare(password, account.password))) {
 
@@ -131,21 +210,18 @@ const loginUser = async (req, res) => {
                 });
             }
 
-            const roleName = account.role || 'student'; // fallback
->>>>>>> Stashed changes
+            const roleName = account.roleID ? account.roleID.role_name : 'student'; // fallback
 
-        if (user && (await bcrypt.compare(password, user.password))) {
             res.json({
-                _id: user._id,
-                name: user.name,
-                email: user.email,
-                role: user.role,
-                token: generateToken(user._id, user.role),
+                _id: account._id,
+                full_name: account.full_name,
+                email: account.email,
+                username: account.username,
+                role: roleName,
+                img: account.img,
+                token: generateToken(account._id, roleName),
             });
         } else {
-<<<<<<< Updated upstream
-            res.status(401).json({ message: 'Invalid email or password' });
-=======
             res.status(401).json({ message: 'Invalid username or password' });
         }
     } catch (error) {
@@ -159,7 +235,7 @@ const loginUser = async (req, res) => {
 // @access  Private
 const getMe = async (req, res) => {
     try {
-        const account = await Account.findById(req.user.id).select('-password');
+        const account = await Account.findById(req.user.id).select('-password').populate('roleID');
         if (!account) {
             return res.status(404).json({ message: 'User not found' });
         }
@@ -205,12 +281,12 @@ const updateUserProfile = async (req, res) => {
 
             const updatedAccount = await account.save();
 
-            // Role is now embedded, no need to populate
+            // Populate role for frontend consistency
+            await updatedAccount.populate('roleID');
 
             res.json(updatedAccount);
         } else {
             res.status(404).json({ message: 'User not found' });
->>>>>>> Stashed changes
         }
     } catch (error) {
         console.error(error);
@@ -218,9 +294,6 @@ const updateUserProfile = async (req, res) => {
     }
 };
 
-<<<<<<< Updated upstream
-module.exports = { registerUser, loginUser };
-=======
 // @desc    Create a tutor upgrade request
 // @route   POST /api/auth/tutor-request
 // @access  Private
@@ -351,7 +424,8 @@ const verifyEmail = async (req, res) => {
         account.verificationTokenExpires = undefined;
         await account.save();
 
-        // Role is now embedded, no need to populate
+        // Populate role for response (if we want to auto-login, but typically we redirect to login)
+        await account.populate('roleID');
 
         // We can either return JSON or redirect?
         // Let's return JSON for frontend to handle
@@ -364,4 +438,3 @@ const verifyEmail = async (req, res) => {
 };
 
 module.exports = { registerUser, loginUser, getMe, updateUserProfile, createTutorRequest, verifyEmail };
->>>>>>> Stashed changes

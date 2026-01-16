@@ -3,12 +3,12 @@ const mongoose = require('mongoose');
 const reviewSchema = new mongoose.Schema({
     tutor: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'TutorProfile',
+        ref: 'Account',
         required: true
     },
     student: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
+        ref: 'Account',
         required: true
     },
     rating: {

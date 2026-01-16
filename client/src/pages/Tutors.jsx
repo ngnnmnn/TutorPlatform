@@ -151,10 +151,10 @@ const Tutors = () => {
                                             <div className="flex justify-between items-start mb-4">
                                                 <div className="flex gap-4">
                                                     <div className="w-14 h-14 rounded-full bg-indigo-100 flex items-center justify-center text-primary font-bold text-xl">
-                                                        {tutor.user.name.charAt(0)}
+                                                        {tutor.full_name?.charAt(0)}
                                                     </div>
                                                     <div>
-                                                        <h3 className="font-bold text-lg text-dark group-hover:text-primary transition-colors">{tutor.user.name}</h3>
+                                                        <h3 className="font-bold text-lg text-dark group-hover:text-primary transition-colors">{tutor.full_name}</h3>
                                                         <p className="text-sm text-gray-500">{tutor.education?.degree}</p>
                                                     </div>
                                                 </div>

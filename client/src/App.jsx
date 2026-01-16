@@ -7,6 +7,10 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Feed from './pages/Feed';
 
+import Profile from './pages/Profile';
+import BecomeTutor from './pages/BecomeTutor';
+import VerifyEmail from './pages/VerifyEmail';
+
 function App() {
   return (
     <Router>
@@ -17,7 +21,10 @@ function App() {
           <Route path="/tutors/:id" element={<TutorDetail />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/verify/:token" element={<VerifyEmail />} />
           <Route path="/feed" element={<Feed />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/become-tutor" element={<BecomeTutor />} />
         </Routes>
       </div>
     </Router>
