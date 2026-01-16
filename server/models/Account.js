@@ -50,43 +50,6 @@ const accountSchema = new mongoose.Schema({
     },
     verificationToken: String,
     verificationTokenExpires: Date,
-
-    // Tutor Specific Fields
-    bio: {
-        type: String,
-        default: ''
-    },
-    subjects: [{
-        type: String
-    }],
-    education: {
-        school: String,
-        degree: String,
-        graduationYear: Number
-    },
-    achievements: [{
-        title: String,
-        date: Date,
-        description: String
-    }],
-    teachingSchedule: [{
-        day: String,
-        startTime: String,
-        endTime: String,
-        isBooked: { type: Boolean, default: false }
-    }],
-    hourlyRate: {
-        type: Number,
-        default: 0
-    },
-    rating: {
-        type: Number,
-        default: 0
-    },
-    numReviews: {
-        type: Number,
-        default: 0
-    },
     isApproved: {
         type: Boolean,
         default: false

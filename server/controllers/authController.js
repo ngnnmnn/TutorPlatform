@@ -3,6 +3,7 @@ const Role = require('../models/Role');
 const TutorRequest = require('../models/TutorRequest');
 const Evidence = require('../models/Evidence');
 const Certificate = require('../models/Certificate');
+const TeachSubject = require('../models/TeachSubject');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
@@ -308,6 +309,8 @@ const createTutorRequest = async (req, res) => {
             university,
             Note,
             certificates, // Expecting JSON string of array of strings or array
+            subjectIDs, // Expecting JSON string of array of subject IDs or array
+            intro,
             captchaToken // Recaptcha token
         } = req.body;
 
@@ -339,9 +342,38 @@ const createTutorRequest = async (req, res) => {
             physic_score,
             english_score,
             university,
+            intro,
             Note,
             status: 1 // Pending
         });
+
+        // Handle Selected Subjects
+        let subList = [];
+        try {
+            if (typeof subjectIDs === 'string') {
+                subList = JSON.parse(subjectIDs);
+            } else if (Array.isArray(subjectIDs)) {
+                subList = subjectIDs;
+            }
+        } catch (e) {
+            console.error("Error parsing subjectIDs:", e);
+        }
+
+        if (subList && subList.length > 0) {
+            if (subList.length > 3) {
+                return res.status(400).json({ message: 'Bạn chỉ được chọn tối đa 3 môn học.' });
+            }
+            for (const subId of subList) {
+                await TeachSubject.create({
+                    subjectID: subId,
+                    tutorID: req.user.id,
+                    tutorReId: tutorRequest._id,
+                    status: false // Not active until request is approved
+                });
+            }
+        } else {
+            return res.status(400).json({ message: 'Vui lòng chọn ít nhất 1 môn học để dạy.' });
+        }
 
         // Handle Certificates
         let certList = [];

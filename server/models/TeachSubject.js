@@ -11,6 +11,11 @@ const teachSubjectSchema = new mongoose.Schema({
         ref: 'Account',
         required: true
     },
+    tutorReId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'TutorRequest',
+        required: true
+    },
     createAt: {
         type: Date,
         default: Date.now

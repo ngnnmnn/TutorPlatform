@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import axios from 'axios';
@@ -40,6 +40,7 @@ const BecomeTutor = () => {
     });
 
     const [university, setUniversity] = useState('');
+    const [intro, setIntro] = useState('');
     const [note, setNote] = useState('');
 
     // Certificates (List of strings)
@@ -53,6 +54,20 @@ const BecomeTutor = () => {
     const [showTerms, setShowTerms] = useState(false);
     const [agreedTerms, setAgreedTerms] = useState(false);
     const [captchaToken, setCaptchaToken] = useState(null);
+    const [availableSubjects, setAvailableSubjects] = useState([]);
+    const [selectedSubjectIds, setSelectedSubjectIds] = useState([]);
+
+    useEffect(() => {
+        const fetchSubjects = async () => {
+            try {
+                const res = await axios.get('http://localhost:5000/api/subjects');
+                setAvailableSubjects(res.data);
+            } catch (err) {
+                console.error("Error fetching subjects:", err);
+            }
+        };
+        fetchSubjects();
+    }, []);
 
     const handleScoreChange = (e) => {
         setScores({ ...scores, [e.target.name]: e.target.value });
@@ -87,6 +102,18 @@ const BecomeTutor = () => {
         const newPreviews = previews.filter((_, i) => i !== index);
         setFiles(newFiles);
         setPreviews(newPreviews);
+    };
+
+    const handleSubjectToggle = (id) => {
+        if (selectedSubjectIds.includes(id)) {
+            setSelectedSubjectIds(selectedSubjectIds.filter(item => item !== id));
+        } else {
+            if (selectedSubjectIds.length >= 3) {
+                alert("Bạn chỉ được chọn tối đa 3 môn học.");
+                return;
+            }
+            setSelectedSubjectIds([...selectedSubjectIds, id]);
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -125,6 +152,7 @@ const BecomeTutor = () => {
             });
 
             formData.append('university', university);
+            formData.append('intro', intro);
             formData.append('Note', note);
 
             // Append Certificates (filter empty)
@@ -135,6 +163,9 @@ const BecomeTutor = () => {
             files.forEach(file => {
                 formData.append('evidence', file);
             });
+
+            // Append Selected Subjects
+            formData.append('subjectIDs', JSON.stringify(selectedSubjectIds));
 
             const config = {
                 headers: {
@@ -158,111 +189,175 @@ const BecomeTutor = () => {
 
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col">
+        <div className="min-h-screen bg-gray-50 flex flex-col font-inter">
             <Navbar />
 
-            <div className="flex-1 container mx-auto px-4 pt-24 pb-12">
-                <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden">
-                    <div className="bg-primary px-8 py-6 text-white">
-                        <h1 className="text-2xl font-bold flex items-center gap-2">
-                            <GraduationCap className="w-8 h-8" />
-                            Đăng ký làm Gia sư
-                        </h1>
-                        <p className="mt-2 text-primary-100 opacity-90">
-                            Cung cấp thông tin học vấn và minh chứng để nâng cấp tài khoản.
-                        </p>
-                    </div>
+            <div className="flex-1 flex flex-col items-center py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-indigo-50/50 via-white to-purple-50/50">
+                {/* Header Section */}
+                <div className="text-center mb-10 mt-16 animate-fade-in">
+                    <h1 className="text-3xl md:text-5xl font-extrabold text-gray-900 tracking-tight mb-3">
+                        Đăng ký trở thành <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">Gia sư</span>
+                    </h1>
+                    <p className="max-w-xl mx-auto text-gray-600 font-medium">
+                        Hoàn thiện hồ sơ để gia nhập đội ngũ gia sư chất lượng cao của chúng tôi.
+                    </p>
+                </div>
 
-                    <form onSubmit={handleSubmit} className="p-8 space-y-8">
+                {/* Main Card */}
+                <div className="w-full max-w-4xl bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <form onSubmit={handleSubmit} className="p-8 md:p-10 space-y-10">
                         {error && (
-                            <div className="bg-red-50 text-red-600 p-4 rounded-lg flex items-center gap-2">
-                                <AlertCircle className="w-5 h-5" />
-                                {error}
+                            <div className="bg-red-50 border border-red-100 text-red-600 p-4 rounded-xl flex items-center gap-3">
+                                <AlertCircle className="w-5 h-5 shrink-0" />
+                                <span className="text-sm font-medium">{error}</span>
                             </div>
                         )}
 
-                        {/* Section 1: Scores */}
-                        <div className="space-y-4">
-                            <h3 className="text-lg font-semibold text-gray-800 border-b pb-2 flex items-center gap-2">
-                                <BookOpen className="w-5 h-5 text-primary" />
-                                Điểm thi Đại học / THPT
-                            </h3>
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                <ScoreInput label="Toán" name="math_score" value={scores.math_score} onChange={handleScoreChange} />
-                                <ScoreInput label="Văn" name="literature_score" value={scores.literature_score} onChange={handleScoreChange} />
-                                <ScoreInput label="Anh" name="english_score" value={scores.english_score} onChange={handleScoreChange} />
-                                <ScoreInput label="Lý" name="physic_score" value={scores.physic_score} onChange={handleScoreChange} />
-                                <ScoreInput label="Hóa" name="chemistry_score" value={scores.chemistry_score} onChange={handleScoreChange} />
+                        {/* Section: Academic Performance */}
+                        <div className="space-y-6">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 rounded-lg bg-indigo-50 text-primary">
+                                    <BookOpen className="w-5 h-5" />
+                                </div>
+                                <h3 className="text-xl font-bold text-gray-900">Năng lực Học thuật</h3>
                             </div>
-                        </div>
 
-                        {/* Section 2: Education Info */}
-                        <div className="space-y-4">
-                            <h3 className="text-lg font-semibold text-gray-800 border-b pb-2 flex items-center gap-2">
-                                <GraduationCap className="w-5 h-5 text-primary" />
-                                Thông tin học vấn
-                            </h3>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Trường Đại học</label>
-                                <input
-                                    type="text"
-                                    value={university}
-                                    onChange={(e) => setUniversity(e.target.value)}
-                                    required
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary"
-                                    placeholder="Ví dụ: Đại học Bách Khoa Hà Nội"
-                                />
-                            </div>
-                        </div>
-
-                        {/* Section 3: Certificates */}
-                        <div className="space-y-4">
-                            <h3 className="text-lg font-semibold text-gray-800 border-b pb-2 flex items-center gap-2">
-                                <CheckCircle className="w-5 h-5 text-primary" />
-                                Chứng chỉ đạt được
-                            </h3>
-                            <div className="space-y-3">
-                                {certificates.map((cert, index) => (
-                                    <div key={index} className="flex gap-2">
+                            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                                {[
+                                    { label: 'Toán', name: 'math_score' },
+                                    { label: 'Văn', name: 'literature_score' },
+                                    { label: 'Anh', name: 'english_score' },
+                                    { label: 'Lý', name: 'physic_score' },
+                                    { label: 'Hóa', name: 'chemistry_score' }
+                                ].map((field) => (
+                                    <div key={field.name} className="flex flex-col gap-1.5">
+                                        <label className="text-xs font-semibold text-gray-500 uppercase">{field.label}</label>
                                         <input
-                                            type="text"
-                                            value={cert}
-                                            onChange={(e) => handleCertChange(index, e.target.value)}
-                                            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary"
-                                            placeholder="Tên chứng chỉ (VD: IELTS 7.5, Giải Nhất Toán TP...)"
+                                            type="number"
+                                            step="0.1"
+                                            min="0"
+                                            max="10"
+                                            name={field.name}
+                                            value={scores[field.name]}
+                                            onChange={handleScoreChange}
+                                            required
+                                            className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-center font-bold text-gray-800"
+                                            placeholder="0.0"
                                         />
-                                        {certificates.length > 1 && (
-                                            <button
-                                                type="button"
-                                                onClick={() => removeCertField(index)}
-                                                className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
-                                            >
-                                                <Trash className="w-5 h-5" />
-                                            </button>
-                                        )}
                                     </div>
                                 ))}
-                                <button
-                                    type="button"
-                                    onClick={addCertField}
-                                    className="text-primary hover:text-primary-dark font-medium flex items-center gap-1 text-sm"
-                                >
-                                    <Plus className="w-4 h-4" /> Thêm chứng chỉ
-                                </button>
                             </div>
                         </div>
 
-                        {/* Section 4: Evidence Upload */}
-                        <div className="space-y-4">
-                            <h3 className="text-lg font-semibold text-gray-800 border-b pb-2 flex items-center gap-2">
-                                <Upload className="w-5 h-5 text-primary" />
-                                Minh chứng (Ảnh)
-                            </h3>
-                            <p className="text-sm text-gray-500 italic">
-                                Vui lòng tải lên ảnh CCCD, Thẻ sinh viên, và các bằng cấp/chứng chỉ đã khai báo ở trên.
-                            </p>
+                        {/* Section: Subjects */}
+                        <div className="space-y-6">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 rounded-lg bg-secondary/10 text-secondary">
+                                    <Plus className="w-5 h-5" />
+                                </div>
+                                <h3 className="text-xl font-bold text-gray-900">Môn học đăng ký (Tối đa 3)</h3>
+                            </div>
 
-                            <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:bg-gray-50 transition-colors cursor-pointer relative">
+                            <div className="flex flex-wrap gap-2">
+                                {availableSubjects.map(sub => (
+                                    <button
+                                        key={sub._id}
+                                        type="button"
+                                        onClick={() => handleSubjectToggle(sub._id)}
+                                        className={`px-4 py-2 rounded-full border text-sm font-medium transition-all ${selectedSubjectIds.includes(sub._id)
+                                            ? 'bg-secondary border-secondary text-white shadow-md'
+                                            : 'bg-white border-gray-200 text-gray-600 hover:border-secondary/50'
+                                            }`}
+                                    >
+                                        {sub.sub_name}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Section: Biography */}
+                        <div className="space-y-6">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 rounded-lg bg-emerald-50 text-emerald-600">
+                                    <FileText className="w-5 h-5" />
+                                </div>
+                                <h3 className="text-xl font-bold text-gray-900">Lời tự bạch</h3>
+                            </div>
+
+                            <textarea
+                                value={intro}
+                                onChange={(e) => setIntro(e.target.value)}
+                                required
+                                className="w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all min-h-[150px] text-gray-700"
+                                placeholder="Hãy giới thiệu ngắn gọn về bản thân, phong cách dạy và kinh nghiệm của bạn..."
+                            />
+                        </div>
+
+                        {/* Section: Education Info */}
+                        <div className="space-y-6">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 rounded-lg bg-amber-50 text-amber-600">
+                                    <GraduationCap className="w-5 h-5" />
+                                </div>
+                                <h3 className="text-xl font-bold text-gray-900">Học vấn & Chứng chỉ</h3>
+                            </div>
+
+                            <div className="grid md:grid-cols-2 gap-8">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium text-gray-700">Trường Đại học</label>
+                                    <input
+                                        type="text"
+                                        value={university}
+                                        onChange={(e) => setUniversity(e.target.value)}
+                                        required
+                                        className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                                        placeholder="Ví dụ: Đại học Bách Khoa Hà Nội"
+                                    />
+                                </div>
+
+                                <div className="space-y-3">
+                                    <label className="text-sm font-medium text-gray-700">Chứng chỉ & Giải thưởng</label>
+                                    {certificates.map((cert, index) => (
+                                        <div key={index} className="flex gap-2">
+                                            <input
+                                                type="text"
+                                                value={cert}
+                                                onChange={(e) => handleCertChange(index, e.target.value)}
+                                                className="flex-1 px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm"
+                                                placeholder="VD: IELTS 7.5, Giải Nhất Toán..."
+                                            />
+                                            {certificates.length > 1 && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeCertField(index)}
+                                                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                                >
+                                                    <Trash className="w-5 h-5" />
+                                                </button>
+                                            )}
+                                        </div>
+                                    ))}
+                                    <button
+                                        type="button"
+                                        onClick={addCertField}
+                                        className="w-full py-2 rounded-xl border-2 border-dashed border-gray-200 text-gray-500 hover:border-primary/50 hover:text-primary transition-all flex items-center justify-center gap-2 text-sm"
+                                    >
+                                        <Plus className="w-4 h-4" /> Thêm mới
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Section: Evidence Upload */}
+                        <div className="space-y-6">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 rounded-lg bg-cyan-50 text-cyan-600">
+                                    <Upload className="w-5 h-5" />
+                                </div>
+                                <h3 className="text-xl font-bold text-gray-900">Minh chứng & Hồ sơ</h3>
+                            </div>
+
+                            <div className="border-2 border-dashed border-gray-200 rounded-2xl p-8 text-center hover:bg-gray-50 transition-colors relative cursor-pointer group">
                                 <input
                                     type="file"
                                     multiple
@@ -271,24 +366,23 @@ const BecomeTutor = () => {
                                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                                 />
                                 <div className="flex flex-col items-center">
-                                    <Upload className="w-10 h-10 text-gray-400 mb-2" />
-                                    <span className="text-gray-600 font-medium">Nhấn để chọn ảnh hoặc kéo thả vào đây</span>
-                                    <span className="text-gray-400 text-sm mt-1">Hỗ trợ JPG, PNG</span>
+                                    <Upload className="w-10 h-10 text-gray-400 mb-2 group-hover:text-primary transition-colors" />
+                                    <p className="text-gray-600 font-medium">Nhấn để tải lên ảnh minh chứng</p>
+                                    <p className="text-xs text-gray-400 mt-1">(CCCD, Thẻ sinh viên, Bằng cấp...)</p>
                                 </div>
                             </div>
 
-                            {/* Preview Grid */}
                             {previews.length > 0 && (
-                                <div className="grid grid-cols-3 sm:grid-cols-4 gap-4 mt-4">
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                     {previews.map((src, index) => (
-                                        <div key={index} className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 group">
-                                            <img src={src} alt={`Preview ${index}`} className="w-full h-full object-cover" />
+                                        <div key={index} className="relative aspect-square rounded-xl overflow-hidden border border-gray-100 group shadow-sm">
+                                            <img src={src} alt="Preview" className="w-full h-full object-cover" />
                                             <button
                                                 type="button"
                                                 onClick={() => removeFile(index)}
-                                                className="absolute top-1 right-1 bg-black/60 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                                className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                                             >
-                                                <Trash className="w-4 h-4" />
+                                                <X className="w-4 h-4" />
                                             </button>
                                         </div>
                                     ))}
@@ -296,120 +390,86 @@ const BecomeTutor = () => {
                             )}
                         </div>
 
-                        {/* Section 5: Note */}
-                        <div className="space-y-4">
-                            <h3 className="text-lg font-semibold text-gray-800 border-b pb-2 flex items-center gap-2">
-                                <FileText className="w-5 h-5 text-primary" />
-                                Ghi chú thêm
-                            </h3>
-                            <textarea
-                                value={note}
-                                onChange={(e) => setNote(e.target.value)}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary min-h-[100px]"
-                                placeholder="Bất kỳ thông tin nào khác bạn muốn chúng tôi biết..."
-                            />
-                        </div>
-
-                        {/* Terms and Captcha */}
-                        <div className="space-y-4 pt-4 border-t">
-                            <div className="flex items-start gap-3">
-                                <input
-                                    type="checkbox"
-                                    id="terms"
-                                    checked={agreedTerms}
-                                    onChange={(e) => setAgreedTerms(e.target.checked)}
-                                    className="mt-1 w-4 h-4 text-primary focus:ring-primary border-gray-300 rounded"
-                                />
-                                <label htmlFor="terms" className="text-sm text-gray-700">
-                                    Tôi đã đọc và đồng ý với <button type="button" onClick={() => setShowTerms(true)} className="text-primary font-bold hover:underline">Điều khoản dành cho Gia sư</button> của Website.
-                                </label>
-                            </div>
-
-                            <div className="flex justify-center md:justify-start">
-                                <ReCAPTCHA
-                                    sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY || "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"}
-                                    onChange={setCaptchaToken}
+                        {/* Footer Section */}
+                        <div className="space-y-6 pt-6 border-t border-gray-100">
+                            <div className="space-y-4">
+                                <label className="text-sm font-medium text-gray-700">Ghi chú bổ sung</label>
+                                <textarea
+                                    value={note}
+                                    onChange={(e) => setNote(e.target.value)}
+                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm"
+                                    placeholder="Có điều gì khác bạn muốn nhắn gửi không?"
                                 />
                             </div>
-                        </div>
 
-                        {/* Submit Actions */}
-                        <div className="flex justify-end pt-4">
-                            <button
-                                type="button"
-                                onClick={() => navigate('/profile')}
-                                className="px-6 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium mr-4"
-                            >
-                                Hủy
-                            </button>
-                            <button
-                                type="submit"
-                                disabled={loading}
-                                className="px-8 py-2 bg-primary text-white rounded-lg font-bold hover:bg-primary/90 shadow-lg shadow-primary/30 transition-all flex items-center gap-2"
-                            >
-                                {loading && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-                                {loading ? 'Đang gửi...' : 'Gửi yêu cầu'}
-                            </button>
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                                <div className="space-y-4">
+                                    <div className="flex items-center gap-3 cursor-pointer" onClick={() => setAgreedTerms(!agreedTerms)}>
+                                        <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${agreedTerms ? 'bg-primary border-primary' : 'border-gray-300'}`}>
+                                            {agreedTerms && <CheckCircle className="w-3.5 h-3.5 text-white" />}
+                                        </div>
+                                        <span className="text-sm text-gray-600">
+                                            Tôi đã đọc và đồng ý với <button type="button" onClick={(e) => { e.stopPropagation(); setShowTerms(true); }} className="text-primary font-bold hover:underline">Điều khoản Gia sư</button>
+                                        </span>
+                                    </div>
+                                    <ReCAPTCHA
+                                        sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY || "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"}
+                                        onChange={setCaptchaToken}
+                                    />
+                                </div>
+
+                                <div className="flex items-center gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => navigate('/profile')}
+                                        className="px-6 py-3 text-gray-500 font-bold hover:text-gray-700 transition-colors"
+                                    >
+                                        Hủy bỏ
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        disabled={loading}
+                                        className="px-8 py-3 bg-gradient-to-r from-primary to-secondary text-white rounded-xl font-bold hover:opacity-90 transition-all shadow-lg shadow-primary/20 disabled:opacity-50 flex items-center gap-2"
+                                    >
+                                        {loading && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+                                        {loading ? 'Đang gửi...' : 'Xác nhận Đăng ký'}
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </form>
                 </div>
             </div>
+            <Footer />
 
-
-
-            {/* Tutor Terms Modal */}
+            {/* Modal: Terms */}
             {showTerms && (
-                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl animate-fade-in">
-                        <div className="p-6 border-b flex justify-between items-center bg-gray-50 rounded-t-2xl">
-                            <h2 className="text-xl font-bold text-gray-800">Điều Khoản Dành Cho Gia Sư</h2>
-                            <button onClick={() => setShowTerms(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/50 backdrop-blur-sm shadow-2xl" onClick={() => setShowTerms(false)} />
+                    <div className="relative bg-white rounded-2xl w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl overflow-hidden">
+                        <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+                            <h2 className="text-xl font-bold text-gray-900">Điều Khoản Gia Sư</h2>
+                            <button onClick={() => setShowTerms(false)} className="text-gray-400 hover:text-gray-600 p-2">
                                 <X className="w-6 h-6" />
                             </button>
                         </div>
-                        <div className="p-6 overflow-y-auto prose prose-sm max-w-none text-gray-600">
-                            <h3>1. Phạm vi áp dụng</h3>
-                            <p>Điều khoản này áp dụng cho tất cả người dùng đăng ký tài khoản với vai trò Gia sư trên website TutorPlatform. Khi đăng ký, truy cập hoặc sử dụng Website với vai trò Gia sư, bạn được xem là đã đọc, hiểu và đồng ý với toàn bộ các điều khoản dưới đây.</p>
-
-                            <h3>2. Điều kiện trở thành Gia sư</h3>
-                            <p>Gia sư cam kết: Từ 18 tuổi trở lên, có đầy đủ năng lực hành vi dân sự, có kiến thức, kỹ năng phù hợp. Website có quyền yêu cầu xác minh thông tin và từ chối nếu không đáp ứng điều kiện.</p>
-
-                            <h3>3. Thông tin hồ sơ Gia sư</h3>
-                            <p>Gia sư có trách nhiệm cung cấp thông tin chính xác, trung thực (Họ tên, Trình độ, Kinh nghiệm, Môn học). Gia sư chịu trách nhiệm hoàn toàn về tính xác thực của thông tin.</p>
-
-                            <h3>4. Nghĩa vụ giảng dạy</h3>
-                            <p>Gia sư cam kết: Giảng dạy đúng nội dung, thời gian đã thỏa thuận. Có thái độ nghiêm túc, tôn trọng, không xúc phạm, quấy rối. Website không chịu trách nhiệm về chất lượng giảng dạy hay kết quả học tập.</p>
-
-                            <h3>5. Phí dịch vụ</h3>
-                            <p>Gia sư có thể phải trả phí giới thiệu, duy trì tài khoản hoặc hoa hồng (nếu áp dụng). Phí đã thanh toán không hoàn lại trừ trường hợp quy định khác.</p>
-
-                            <h3>6. Hủy lớp và vi phạm cam kết</h3>
-                            <p>Gia sư phải thông báo trước khi hủy lớp. Nếu hủy nhiều lần hoặc bị phản ánh tiêu cực, Website có quyền cảnh cáo, tạm khóa hoặc chấm dứt tài khoản.</p>
-
-                            <h3>7. Hành vi bị nghiêm cấm</h3>
-                            <p>Không cung cấp thông tin giả mạo, lừa đảo, tự ý thu phí trái thỏa thuận, quấy rối học viên, hoặc cố tình giao dịch ngoài nền tảng để trốn phí.</p>
-
-                            <h3>8. Quyền của Website</h3>
-                            <p>Website có quyền kiểm tra, xác minh hồ sơ, tạm khóa/xóa tài khoản vi phạm, và lưu trữ thông tin để quản lý.</p>
-
-                            <h3>9. Giới hạn trách nhiệm</h3>
-                            <p>Website không chịu trách nhiệm tranh chấp cá nhân, thiệt hại ngoài kiểm soát, hoặc kết quả học tập của học viên.</p>
-
-                            <h3>10. Chấm dứt tư cách Gia sư</h3>
-                            <p>Gia sư có thể chấm dứt tư cách bằng cách gửi yêu cầu và hoàn thành nghĩa vụ. Website có quyền chấm dứt nếu vi phạm.</p>
-
-                            <h3>11. Luật áp dụng</h3>
-                            <p>Điều khoản được điều chỉnh theo pháp luật Việt Nam. Tranh chấp giải quyết tại cơ quan có thẩm quyền tại Việt Nam.</p>
-
-                            <h3>12. Thông tin liên hệ</h3>
-                            <p>Email: admin@tutorplatform.com | Hotline: 1900 xxxx</p>
+                        <div className="p-8 overflow-y-auto space-y-6 text-gray-600 leading-relaxed">
+                            <section>
+                                <h3 className="font-bold text-gray-900 mb-2">1. Quy định chung</h3>
+                                <p>Khi đăng ký trở thành gia sư, bạn cam kết cung cấp thông tin chính xác và đầy đủ về trình độ học vấn cũng như kinh nghiệm giảng dạy.</p>
+                            </section>
+                            <section>
+                                <h3 className="font-bold text-gray-900 mb-2">2. Trách nhiệm</h3>
+                                <p>Gia sư có trách nhiệm chuẩn bị kỹ bài giảng, đúng giờ và duy trì thái độ chuyên nghiệp trong suốt quá trình dạy học.</p>
+                            </section>
+                            <section>
+                                <h3 className="font-bold text-gray-900 mb-2">3. Bảo mật</h3>
+                                <p>Tuyệt đối không sử dụng thông tin cá nhân của học viên vào mục đích khác ngoài việc hỗ trợ học tập.</p>
+                            </section>
                         </div>
-                        <div className="p-6 border-t bg-gray-50 rounded-b-2xl flex justify-end">
+                        <div className="p-6 border-t border-gray-100 flex justify-end">
                             <button
-                                onClick={() => {
-                                    setAgreedTerms(true);
-                                    setShowTerms(false);
-                                }}
+                                onClick={() => { setAgreedTerms(true); setShowTerms(false); }}
                                 className="px-6 py-2 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-colors"
                             >
                                 Tôi đồng ý
@@ -418,8 +478,6 @@ const BecomeTutor = () => {
                     </div>
                 </div>
             )}
-
-            <Footer />
         </div>
     );
 };

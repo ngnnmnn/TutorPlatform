@@ -6,7 +6,7 @@ const subjectSchema = new mongoose.Schema({
         required: true
     },
     status: {
-        type: boolean,
+        type: Boolean,
         default: true
     }
 });

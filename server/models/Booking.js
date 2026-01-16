@@ -6,26 +6,22 @@ const bookingSchema = mongoose.Schema({
         required: true,
         ref: 'Account'
     },
-    tutor: {
+    orderId: {
         type: mongoose.Schema.Types.ObjectId,
         required: true,
-        ref: 'Account'
+        ref: 'OrderCombo'
     },
-    date: {
-        type: Date,
-        required: true
-    },
-    timeSlot: {
+    Note: {
         type: String,
-        required: true
-    },
-    note: {
-        type: String
+        default: ""
     },
     status: {
-        type: String,
-        enum: ['pending', 'confirmed', 'cancelled', 'completed'],
-        default: 'pending'
+        type: Number,
+        default: 1
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now
     }
 }, {
     timestamps: true

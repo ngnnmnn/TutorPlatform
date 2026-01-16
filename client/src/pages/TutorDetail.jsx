@@ -69,22 +69,27 @@ const TutorDetail = () => {
                                     <h1 className="text-4xl font-bold text-dark mb-2">{tutor.full_name}</h1>
                                     <p className="text-lg text-gray-600 flex items-center gap-2">
                                         <Award className="w-5 h-5 text-primary" />
-                                        {tutor.education?.degree} tại {tutor.education?.school}
+                                        {tutor.university}
                                     </p>
                                 </div>
                                 <div className="text-right">
                                     <p className="text-3xl font-bold text-primary">
-                                        {tutor.hourlyRate.toLocaleString('vi-VN')} <span className="text-base font-normal text-gray-500">đ/giờ</span>
+                                        {tutor.displayPrice?.toLocaleString('vi-VN') || tutor.hourlyRate?.toLocaleString('vi-VN')} <span className="text-base font-normal text-gray-500">VNĐ/buổi</span>
                                     </p>
+                                    {tutor.bookingCount !== undefined && (
+                                        <p className="text-sm text-gray-400 mt-1">
+                                            {tutor.bookingCount} lượt booking
+                                        </p>
+                                    )}
                                     <div className="flex items-center justify-end gap-1 mt-1 text-yellow-500 font-bold">
                                         <Star className="w-5 h-5 fill-current" />
-                                        {tutor.rating} <span className="text-gray-400 font-normal">({tutor.numReviews} đánh giá)</span>
+                                        {tutor.rating || 5.0} <span className="text-gray-400 font-normal">({tutor.numReviews || 0} đánh giá)</span>
                                     </div>
                                 </div>
                             </div>
 
                             <div className="flex flex-wrap gap-3">
-                                {tutor.subjects.map((sub, idx) => (
+                                {tutor.subjects?.map((sub, idx) => (
                                     <span key={idx} className="px-3 py-1 bg-blue-50 text-blue-700 font-medium rounded-lg text-sm border border-blue-100">
                                         {sub}
                                     </span>
@@ -106,15 +111,47 @@ const TutorDetail = () => {
                                 Giới Thiệu
                             </h2>
                             <p className="text-gray-600 leading-relaxed whitespace-pre-line">
-                                {tutor.bio}
+                                {tutor.Note || tutor.bio}
                             </p>
                         </section>
 
-                        {/* Education */}
+                        {/* Exam Scores Section */}
+                        {tutor.scores && (
+                            <section className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+                                <h2 className="text-xl font-bold text-dark mb-6 flex items-center gap-2">
+                                    <Award className="w-6 h-6 text-primary" />
+                                    Điểm Thi Đại Học
+                                </h2>
+                                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                                    <div className="p-4 bg-gray-50 rounded-xl text-center">
+                                        <p className="text-xs text-gray-400 uppercase font-bold mb-1">Toán</p>
+                                        <p className="text-2xl font-bold text-primary">{tutor.scores.math}</p>
+                                    </div>
+                                    <div className="p-4 bg-gray-50 rounded-xl text-center">
+                                        <p className="text-xs text-gray-400 uppercase font-bold mb-1">Văn</p>
+                                        <p className="text-2xl font-bold text-primary">{tutor.scores.literature}</p>
+                                    </div>
+                                    <div className="p-4 bg-gray-50 rounded-xl text-center">
+                                        <p className="text-xs text-gray-400 uppercase font-bold mb-1">Hóa</p>
+                                        <p className="text-2xl font-bold text-primary">{tutor.scores.chemistry}</p>
+                                    </div>
+                                    <div className="p-4 bg-gray-50 rounded-xl text-center">
+                                        <p className="text-xs text-gray-400 uppercase font-bold mb-1">Lý</p>
+                                        <p className="text-2xl font-bold text-primary">{tutor.scores.physic}</p>
+                                    </div>
+                                    <div className="p-4 bg-gray-50 rounded-xl text-center">
+                                        <p className="text-xs text-gray-400 uppercase font-bold mb-1">Anh</p>
+                                        <p className="text-2xl font-bold text-primary">{tutor.scores.english}</p>
+                                    </div>
+                                </div>
+                            </section>
+                        )}
+
+                        {/* Education & Certificates */}
                         <section className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
                             <h2 className="text-xl font-bold text-dark mb-6 flex items-center gap-2">
                                 <Award className="w-6 h-6 text-primary" />
-                                Học Vấn & Thành Tựu
+                                Chứng Chỉ & Thành Tựu
                             </h2>
                             <div className="space-y-6">
                                 <div className="flex gap-4">
@@ -122,21 +159,34 @@ const TutorDetail = () => {
                                         <Award className="w-6 h-6 text-green-600" />
                                     </div>
                                     <div>
-                                        <h3 className="font-bold text-dark">{tutor.education?.school}</h3>
-                                        <p className="text-gray-600">{tutor.education?.degree}</p>
-                                        <p className="text-sm text-gray-400">Tốt nghiệp năm {tutor.education?.graduationYear}</p>
+                                        <h3 className="font-bold text-dark">{tutor.university}</h3>
+                                        <p className="text-gray-600">Gia sư chuyên nghiệp</p>
                                     </div>
                                 </div>
-                                {/* Mock achievements for now since seed doesn't fully populate array structure */}
-                                <div className="flex gap-4">
-                                    <div className="w-12 h-12 rounded-full bg-yellow-50 flex items-center justify-center flex-shrink-0">
-                                        <Star className="w-6 h-6 text-yellow-600" />
+
+                                {tutor.certificates && tutor.certificates.length > 0 ? (
+                                    tutor.certificates.map((cert, idx) => (
+                                        <div key={idx} className="flex gap-4">
+                                            <div className="w-12 h-12 rounded-full bg-yellow-50 flex items-center justify-center flex-shrink-0">
+                                                <Award className="w-6 h-6 text-yellow-600" />
+                                            </div>
+                                            <div>
+                                                <h3 className="font-bold text-dark">{cert}</h3>
+                                                <p className="text-gray-600">Chứng chỉ xác thực</p>
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="flex gap-4">
+                                        <div className="w-12 h-12 rounded-full bg-yellow-50 flex items-center justify-center flex-shrink-0">
+                                            <Star className="w-6 h-6 text-yellow-600" />
+                                        </div>
+                                        <div>
+                                            <h3 className="font-bold text-dark">Chứng chỉ Sư phạm</h3>
+                                            <p className="text-gray-600">Đã qua kiểm duyệt năng lực bởi TutorPlatform</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <h3 className="font-bold text-dark">Chứng chỉ Sư phạm Giỏi</h3>
-                                        <p className="text-gray-600">Đạt danh hiệu giáo viên dạy giỏi cấp thành phố năm 2023</p>
-                                    </div>
-                                </div>
+                                )}
                             </div>
                         </section>
 
@@ -176,17 +226,7 @@ const TutorDetail = () => {
                                 Đặt Lịch Học
                             </h3>
 
-                            {/* Schedule Grid Placeholders */}
-                            <div className="mb-6">
-                                <p className="text-sm text-gray-500 mb-3">Khung giờ phổ biến:</p>
-                                <div className="flex flex-wrap gap-2">
-                                    {['T2 19:00', 'T4 19:00', 'T6 19:00', 'CN 09:00'].map((time) => (
-                                        <button key={time} className="px-3 py-2 border border-gray-200 rounded-lg text-sm hover:border-primary hover:text-primary transition-all">
-                                            {time}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
+
 
                             <div className="space-y-3 mb-6">
                                 <div className="flex items-center gap-3 text-sm text-gray-600">
@@ -209,9 +249,7 @@ const TutorDetail = () => {
                             >
                                 Đặt Lịch Ngay
                             </button>
-                            <p className="text-center text-xs text-gray-400 mt-4">
-                                *Hoàn tiền 100% nếu không hài lòng buổi đầu
-                            </p>
+
                         </div>
                     </div>
                 </div>
@@ -221,8 +259,8 @@ const TutorDetail = () => {
                 isOpen={isBookingOpen}
                 onClose={() => setIsBookingOpen(false)}
                 tutorName={tutor.full_name}
-                hourlyRate={tutor.hourlyRate * 2} // Estimate for 2 hours
                 tutorId={tutor._id}
+                hourlyRate={tutor.displayPrice}
             />
             <Footer />
         </div>

@@ -61,7 +61,9 @@ const Home = () => {
                                         </div>
                                         <div>
                                             <h3 className="font-bold text-lg text-dark group-hover:text-primary transition-colors">{tutor.full_name}</h3>
-                                            <p className="text-sm text-gray-500">{tutor.education?.degree} tại {tutor.education?.school}</p>
+                                            <p className="text-sm text-gray-500">
+                                                {tutor.education?.degree || 'Gia sư'} tại {tutor.university || tutor.education?.school}
+                                            </p>
                                         </div>
                                     </div>
 
@@ -78,10 +80,17 @@ const Home = () => {
                                     <div className="pt-4 border-t border-gray-100 flex items-center justify-between">
                                         <div className="flex items-center gap-1 text-yellow-400 font-bold text-sm">
                                             <Star className="w-4 h-4 fill-current" />
-                                            {tutor.rating} <span className="text-gray-400 font-normal">({tutor.numReviews})</span>
+                                            {tutor.rating || 5.0} <span className="text-gray-400 font-normal">({tutor.numReviews || 0})</span>
                                         </div>
-                                        <div className="text-primary font-bold">
-                                            {tutor.hourlyRate.toLocaleString('vi-VN')} đ/giờ
+                                        <div className="text-right">
+                                            <div className="text-primary font-bold">
+                                                {tutor.displayPrice?.toLocaleString('vi-VN') || tutor.hourlyRate?.toLocaleString('vi-VN')} VNĐ/buổi
+                                            </div>
+                                            {tutor.bookingCount !== undefined && (
+                                                <div className="text-[10px] text-gray-400">
+                                                    {tutor.bookingCount} lượt booking
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
 

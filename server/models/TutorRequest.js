@@ -6,6 +6,10 @@ const tutorRequestSchema = new mongoose.Schema({
         ref: 'Account',
         required: true
     },
+    intro: {
+        type: String,
+        required: true
+    },
     math_score: {
         type: Number,
         required: true
