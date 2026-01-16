@@ -6,10 +6,10 @@ const bookingSchema = mongoose.Schema({
         required: true,
         ref: 'Account'
     },
-    tutor: {
+    orderId: {
         type: mongoose.Schema.Types.ObjectId,
         required: true,
-        ref: 'Account'
+        ref: 'OrderCombo'
     },
     subject: {
         type: String,
@@ -71,10 +71,9 @@ const bookingSchema = mongoose.Schema({
         enum: ['pending', 'tutor_confirmed', 'approved', 'rejected', 'cancelled', 'completed'],
         default: 'pending'
     },
-    // Price for this session
-    price: {
-        type: Number,
-        default: 0
+    createdAt: {
+        type: Date,
+        default: Date.now
     }
 }, {
     timestamps: true

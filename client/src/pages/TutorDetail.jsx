@@ -69,22 +69,27 @@ const TutorDetail = () => {
                                     <h1 className="text-4xl font-bold text-dark mb-2">{tutor.full_name}</h1>
                                     <p className="text-lg text-gray-600 flex items-center gap-2">
                                         <Award className="w-5 h-5 text-primary" />
-                                        {tutor.education?.degree} tại {tutor.education?.school}
+                                        {tutor.university}
                                     </p>
                                 </div>
                                 <div className="text-right">
                                     <p className="text-3xl font-bold text-primary">
-                                        {tutor.hourlyRate.toLocaleString('vi-VN')} <span className="text-base font-normal text-gray-500">đ/giờ</span>
+                                        {tutor.displayPrice?.toLocaleString('vi-VN') || tutor.hourlyRate?.toLocaleString('vi-VN')} <span className="text-base font-normal text-gray-500">VNĐ/buổi</span>
                                     </p>
+                                    {tutor.bookingCount !== undefined && (
+                                        <p className="text-sm text-gray-400 mt-1">
+                                            {tutor.bookingCount} lượt booking
+                                        </p>
+                                    )}
                                     <div className="flex items-center justify-end gap-1 mt-1 text-yellow-500 font-bold">
                                         <Star className="w-5 h-5 fill-current" />
-                                        {tutor.rating} <span className="text-gray-400 font-normal">({tutor.numReviews} đánh giá)</span>
+                                        {tutor.rating || 5.0} <span className="text-gray-400 font-normal">({tutor.numReviews || 0} đánh giá)</span>
                                     </div>
                                 </div>
                             </div>
 
                             <div className="flex flex-wrap gap-3">
-                                {tutor.subjects.map((sub, idx) => (
+                                {tutor.subjects?.map((sub, idx) => (
                                     <span key={idx} className="px-3 py-1 bg-blue-50 text-blue-700 font-medium rounded-lg text-sm border border-blue-100">
                                         {sub}
                                     </span>
@@ -106,92 +111,118 @@ const TutorDetail = () => {
                                 Giới Thiệu
                             </h2>
                             <p className="text-gray-600 leading-relaxed whitespace-pre-line">
-                                {tutor.bio}
+                                {tutor.Note || tutor.bio}
                             </p>
                         </section>
 
-                        {/* Education */}
-                        <section className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
-                            <h2 className="text-xl font-bold text-dark mb-6 flex items-center gap-2">
-                                <Award className="w-6 h-6 text-primary" />
-                                Học Vấn & Thành Tựu
-                            </h2>
-                            <div className="space-y-6">
-                                {/* Education Info */}
-                                {tutor.education?.school && (
-                                    <div className="flex gap-4">
-                                        <div className="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center flex-shrink-0">
-                                            <Award className="w-6 h-6 text-green-600" />
-                                        </div>
-                                        <div>
-                                            <h3 className="font-bold text-dark">{tutor.education?.school}</h3>
-                                            <p className="text-gray-600">{tutor.education?.degree}</p>
-                                            {tutor.education?.graduationYear && (
-                                                <p className="text-sm text-gray-400">Tốt nghiệp năm {tutor.education?.graduationYear}</p>
-                                            )}
-                                        </div>
+                        {/* Exam Scores Section */}
+                        {tutor.scores && (
+                            <section className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+                                <h2 className="text-xl font-bold text-dark mb-6 flex items-center gap-2">
+                                    <Award className="w-6 h-6 text-primary" />
+                                    Điểm Thi Đại Học
+                                </h2>
+                                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                                    <div className="p-4 bg-gray-50 rounded-xl text-center">
+                                        <p className="text-xs text-gray-400 uppercase font-bold mb-1">Toán</p>
+                                        <p className="text-2xl font-bold text-primary">{tutor.scores.math}</p>
                                     </div>
-                                )}
-
-                                {/* Certificates from DB */}
-                                {tutor.certificates && tutor.certificates.length > 0 && (
-                                    <>
-                                        <div className="border-t border-gray-100 pt-4">
-                                            <h3 className="font-semibold text-dark mb-4">Chứng chỉ & Bằng cấp</h3>
-                                            <div className="space-y-4">
-                                                {tutor.certificates.map((cert, index) => (
-                                                    <div key={index} className="flex gap-4">
-                                                        <div className="w-12 h-12 rounded-full bg-yellow-50 flex items-center justify-center flex-shrink-0">
-                                                            <Star className="w-6 h-6 text-yellow-600" />
-                                                        </div>
-                                                        <div>
-                                                            <h4 className="font-bold text-dark">{cert.name}</h4>
-                                                            <p className="text-gray-600">
-                                                                {cert.issuedBy} {cert.year && `• Năm ${cert.year}`}
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </>
-                                )}
-
-                                {/* Scores */}
-                                {tutor.scores && Object.values(tutor.scores).some(v => v) && (
-                                    <div className="border-t border-gray-100 pt-4">
-                                        <h3 className="font-semibold text-dark mb-3">Điểm các môn</h3>
-                                        <div className="flex flex-wrap gap-3">
-                                            {tutor.scores.math && (
-                                                <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-medium">
-                                                    Toán: {tutor.scores.math}
-                                                </span>
-                                            )}
-                                            {tutor.scores.literature && (
-                                                <span className="px-3 py-1 bg-purple-50 text-purple-700 rounded-full text-sm font-medium">
-                                                    Văn: {tutor.scores.literature}
-                                                </span>
-                                            )}
-                                            {tutor.scores.chemistry && (
-                                                <span className="px-3 py-1 bg-green-50 text-green-700 rounded-full text-sm font-medium">
-                                                    Hóa: {tutor.scores.chemistry}
-                                                </span>
-                                            )}
-                                            {tutor.scores.physics && (
-                                                <span className="px-3 py-1 bg-orange-50 text-orange-700 rounded-full text-sm font-medium">
-                                                    Lý: {tutor.scores.physics}
-                                                </span>
-                                            )}
-                                            {tutor.scores.english && (
-                                                <span className="px-3 py-1 bg-pink-50 text-pink-700 rounded-full text-sm font-medium">
-                                                    Anh: {tutor.scores.english}
-                                                </span>
-                                            )}
-                                        </div>
+                                    <div className="p-4 bg-gray-50 rounded-xl text-center">
+                                        <p className="text-xs text-gray-400 uppercase font-bold mb-1">Văn</p>
+                                        <p className="text-2xl font-bold text-primary">{tutor.scores.literature}</p>
                                     </div>
-                                )}
-                            </div>
-                        </section>
+                                    <div className="p-4 bg-gray-50 rounded-xl text-center">
+                                        <p className="text-xs text-gray-400 uppercase font-bold mb-1">Hóa</p>
+                                        <p className="text-2xl font-bold text-primary">{tutor.scores.chemistry}</p>
+                                    </div>
+                                    <div className="p-4 bg-gray-50 rounded-xl text-center">
+                                        <p className="text-xs text-gray-400 uppercase font-bold mb-1">Lý</p>
+                                        <p className="text-2xl font-bold text-primary">{tutor.scores.physic}</p>
+                                    </div>
+                                    <div className="p-4 bg-gray-50 rounded-xl text-center">
+                                        <p className="text-xs text-gray-400 uppercase font-bold mb-1">Anh</p>
+                                        <p className="text-2xl font-bold text-primary">{tutor.scores.english}</p>
+                                    </div>
+                                </div>
+                            </section>
+                        )}
+
+                        {/* Education & Certificates */}
+<section className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+    <h2 className="text-xl font-bold text-dark mb-6 flex items-center gap-2">
+        <Award className="w-6 h-6 text-primary" />
+        Chứng Chỉ & Thành Tựu
+    </h2>
+
+    <div className="space-y-6">
+        {/* Education Info */}
+        {tutor.education?.school && (
+            <div className="space-y-4">
+                <div className="flex gap-4">
+                    <div className="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center flex-shrink-0">
+                        <Award className="w-6 h-6 text-green-600" />
+                    </div>
+                    <div>
+                        <h3 className="font-bold text-dark">
+                            {tutor.education.school}
+                        </h3>
+                        <p className="text-gray-600">
+                            {tutor.education.degree}
+                        </p>
+                        {tutor.education.graduationYear && (
+                            <p className="text-sm text-gray-400">
+                                Tốt nghiệp năm {tutor.education.graduationYear}
+                            </p>
+                        )}
+                    </div>
+                </div>
+
+                {tutor.university && (
+                    <div>
+                        <h3 className="font-bold text-dark">
+                            {tutor.university}
+                        </h3>
+                        <p className="text-gray-600">
+                            Gia sư chuyên nghiệp
+                        </p>
+                    </div>
+                )}
+            </div>
+        )}
+
+        {/* Certificates */}
+        {tutor.certificates && tutor.certificates.length > 0 ? (
+            tutor.certificates.map((cert, idx) => (
+                <div key={idx} className="flex gap-4">
+                    <div className="w-12 h-12 rounded-full bg-yellow-50 flex items-center justify-center flex-shrink-0">
+                        <Award className="w-6 h-6 text-yellow-600" />
+                    </div>
+                    <div>
+                        <h3 className="font-bold text-dark">{cert}</h3>
+                        <p className="text-gray-600">
+                            Chứng chỉ xác thực
+                        </p>
+                    </div>
+                </div>
+            ))
+        ) : (
+            <div className="flex gap-4">
+                <div className="w-12 h-12 rounded-full bg-yellow-50 flex items-center justify-center flex-shrink-0">
+                    <Star className="w-6 h-6 text-yellow-600" />
+                </div>
+                <div>
+                    <h3 className="font-bold text-dark">
+                        Chứng chỉ Sư phạm
+                    </h3>
+                    <p className="text-gray-600">
+                        Đã qua kiểm duyệt năng lực bởi TutorPlatform
+                    </p>
+                </div>
+            </div>
+        )}
+    </div>
+</section>
+
 
                         {/* Evidence Images */}
                         {tutor.evidenceImages && tutor.evidenceImages.length > 0 && (
@@ -256,17 +287,7 @@ const TutorDetail = () => {
                                 Đặt Lịch Học
                             </h3>
 
-                            {/* Schedule Grid Placeholders */}
-                            <div className="mb-6">
-                                <p className="text-sm text-gray-500 mb-3">Khung giờ phổ biến:</p>
-                                <div className="flex flex-wrap gap-2">
-                                    {['T2 19:00', 'T4 19:00', 'T6 19:00', 'CN 09:00'].map((time) => (
-                                        <button key={time} className="px-3 py-2 border border-gray-200 rounded-lg text-sm hover:border-primary hover:text-primary transition-all">
-                                            {time}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
+
 
                             <div className="space-y-3 mb-6">
                                 <div className="flex items-center gap-3 text-sm text-gray-600">
@@ -289,9 +310,7 @@ const TutorDetail = () => {
                             >
                                 Đặt Lịch Ngay
                             </button>
-                            <p className="text-center text-xs text-gray-400 mt-4">
-                                *Hoàn tiền 100% nếu không hài lòng buổi đầu
-                            </p>
+
                         </div>
                     </div>
                 </div>
@@ -301,9 +320,8 @@ const TutorDetail = () => {
                 isOpen={isBookingOpen}
                 onClose={() => setIsBookingOpen(false)}
                 tutorName={tutor.full_name}
-                hourlyRate={tutor.hourlyRate}
                 tutorId={tutor._id}
-                tutorSubjects={tutor.subjects}
+                hourlyRate={tutor.displayPrice}
             />
             <Footer />
         </div>

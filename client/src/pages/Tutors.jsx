@@ -73,25 +73,7 @@ const Tutors = () => {
                                 </select>
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Giá theo giờ (VNĐ)</label>
-                                <div className="space-y-2">
-                                    <input
-                                        type="number"
-                                        placeholder="Thấp nhất"
-                                        className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 outline-none"
-                                        value={minPrice}
-                                        onChange={(e) => setMinPrice(e.target.value)}
-                                    />
-                                    <input
-                                        type="number"
-                                        placeholder="Cao nhất"
-                                        className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 outline-none"
-                                        value={maxPrice}
-                                        onChange={(e) => setMaxPrice(e.target.value)}
-                                    />
-                                </div>
-                            </div>
+
 
                             <button
                                 type="submit"
@@ -155,7 +137,9 @@ const Tutors = () => {
                                                     </div>
                                                     <div>
                                                         <h3 className="font-bold text-lg text-dark group-hover:text-primary transition-colors">{tutor.full_name}</h3>
-                                                        <p className="text-sm text-gray-500">{tutor.education?.degree}</p>
+                                                        <p className="text-sm text-gray-500">
+                                                            {tutor.education?.degree || 'Gia sư'} tại {tutor.university || tutor.education?.school}
+                                                        </p>
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-1 bg-yellow-50 px-2 py-1 rounded-lg">
@@ -175,9 +159,16 @@ const Tutors = () => {
                                             </div>
 
                                             <div className="flex items-center justify-between pt-4 border-t border-gray-50">
-                                                <span className="text-lg font-bold text-dark">
-                                                    {tutor.hourlyRate.toLocaleString('vi-VN')} <span className="text-sm text-gray-400 font-normal">đ/giờ</span>
-                                                </span>
+                                                <div className="text-left">
+                                                    <div className="text-primary font-bold text-lg">
+                                                        {tutor.displayPrice?.toLocaleString('vi-VN') || tutor.hourlyRate?.toLocaleString('vi-VN')} VNĐ/buổi
+                                                    </div>
+                                                    {tutor.bookingCount !== undefined && (
+                                                        <div className="text-[10px] text-gray-400">
+                                                            {tutor.bookingCount} lượt booking
+                                                        </div>
+                                                    )}
+                                                </div>
                                                 <Link to={`/tutors/${tutor._id}`} className="px-4 py-2 bg-dark text-white text-sm font-medium rounded-lg hover:bg-primary transition-colors">
                                                     Xem Hồ Sơ
                                                 </Link>

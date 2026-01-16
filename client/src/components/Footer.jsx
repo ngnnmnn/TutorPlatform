@@ -1,5 +1,6 @@
 import React from 'react';
 import { BookOpen, Facebook, Instagram, Twitter } from 'lucide-react';
+import logo from '../assets/logo.png';
 
 const Footer = () => {
     return (
@@ -8,10 +9,10 @@ const Footer = () => {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
                     <div className="col-span-1 md:col-span-1">
                         <div className="flex items-center gap-2 mb-4">
-                            <div className="bg-primary p-2 rounded-lg">
-                                <BookOpen className="w-5 h-5 text-white" />
+                            <div className="p-1">
+                                <img src={logo} alt="TutorHub Logo" className="w-8 h-8 object-contain" />
                             </div>
-                            <span className="font-bold text-xl text-dark">TutorPlatform</span>
+                            <span className="font-bold text-xl text-dark">TutorHub</span>
                         </div>
                         <p className="text-gray-500 text-sm leading-relaxed">
                             Quyết tâm hỗ trợ học sinh đạt được mục tiêu học tập thông qua gia sư cá nhân và tài liệu chất lượng cao.
@@ -49,12 +50,12 @@ const Footer = () => {
                                 <Twitter className="w-5 h-5" />
                             </a>
                         </div>
-                        <p className="text-sm text-gray-500">Liên hệ chúng tôi: <br /> <span className="text-dark font-medium">support@tutorplatform.com</span></p>
+                        <p className="text-sm text-gray-500">Liên hệ chúng tôi: <br /> <span className="text-dark font-medium">support@tutorhub.com</span></p>
                     </div>
                 </div>
 
                 <div className="pt-8 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
-                    <p className="text-sm text-gray-500">© 2026 TutorPlatform. Bảo lưu mọi quyền.</p>
+                    <p className="text-sm text-gray-500">© 2026 TutorHub. Bảo lưu mọi quyền.</p>
                     <div className="flex gap-6 text-sm text-gray-500">
                         <a href="#" className="hover:text-dark">Chính Sách Bảo Mật</a>
                         <a href="#" className="hover:text-dark">Điều Khoản Dịch Vụ</a>
