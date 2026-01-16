@@ -11,21 +11,70 @@ const bookingSchema = mongoose.Schema({
         required: true,
         ref: 'Account'
     },
+    subject: {
+        type: String,
+        required: true
+    },
     date: {
         type: Date,
         required: true
     },
-    timeSlot: {
+    startTime: {
         type: String,
         required: true
     },
-    note: {
-        type: String
+    endTime: {
+        type: String,
+        required: true
     },
+    // Learning mode: online or offline
+    learningMode: {
+        type: String,
+        enum: ['online', 'offline'],
+        default: 'online'
+    },
+    // Google Meet link for online learning
+    meetLink: {
+        type: String,
+        default: ''
+    },
+    // Offline learning location
+    location: {
+        type: String,
+        default: ''
+    },
+    note: {
+        type: String,
+        default: ''
+    },
+    // Tutor's response
+    tutorConfirmed: {
+        type: Boolean,
+        default: null // null = pending, true = confirmed, false = rejected
+    },
+    tutorNote: {
+        type: String,
+        default: ''
+    },
+    // Admin approval (after tutor confirms)
+    adminApproved: {
+        type: Boolean,
+        default: null // null = pending, true = approved, false = rejected
+    },
+    adminNote: {
+        type: String,
+        default: ''
+    },
+    // Overall status
     status: {
         type: String,
-        enum: ['pending', 'confirmed', 'cancelled', 'completed'],
+        enum: ['pending', 'tutor_confirmed', 'approved', 'rejected', 'cancelled', 'completed'],
         default: 'pending'
+    },
+    // Price for this session
+    price: {
+        type: Number,
+        default: 0
     }
 }, {
     timestamps: true

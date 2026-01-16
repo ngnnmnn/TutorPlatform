@@ -61,8 +61,8 @@ const Profile = () => {
                 phone: res.data.phone || '',
                 address: res.data.address || '',
                 bio: res.data.bio || '',
-                subjects: res.data.subjects || '',
-                education: res.data.education || '',
+                subjects: Array.isArray(res.data.subjects) ? res.data.subjects.join(', ') : (res.data.subjects || ''),
+                education: res.data.education?.degree || res.data.education || '',
                 hourlyRate: res.data.hourlyRate || '',
             });
             setPreview(res.data.img || '');
@@ -106,7 +106,7 @@ const Profile = () => {
             data.append('address', formData.address);
 
             // Only append tutor fields if user is tutor
-            if (user.roleID?.role_name === 'tutor') {
+            if (user.role === 'tutor') {
                 data.append('bio', formData.bio);
                 data.append('subjects', formData.subjects);
                 data.append('education', formData.education);
@@ -171,13 +171,25 @@ const Profile = () => {
                     {/* Header / Cover */}
                     <div className="h-32 bg-gradient-to-r from-primary to-indigo-600 relative">
                         {!isEditing && (
-                            <button
-                                onClick={() => setIsEditing(true)}
-                                className="absolute top-4 right-4 bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg backdrop-blur-sm font-medium transition-all flex items-center gap-2"
-                            >
-                                <Edit2 className="w-4 h-4" />
-                                Chỉnh sửa hồ sơ
-                            </button>
+                            <div className="absolute top-4 right-4 flex gap-2">
+                                {user.role === 'tutor' && (
+                                    <button
+                                        type="button"
+                                        onClick={() => window.location.href = '/tutor-profile/edit'}
+                                        className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg backdrop-blur-sm font-medium transition-all flex items-center gap-2"
+                                    >
+                                        <Award className="w-4 h-4" />
+                                        Chỉnh sửa hồ sơ gia sư
+                                    </button>
+                                )}
+                                <button
+                                    onClick={() => setIsEditing(true)}
+                                    className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg backdrop-blur-sm font-medium transition-all flex items-center gap-2"
+                                >
+                                    <Edit2 className="w-4 h-4" />
+                                    Chỉnh sửa nhanh
+                                </button>
+                            </div>
                         )}
                     </div>
 
@@ -302,11 +314,11 @@ const Profile = () => {
                                 <div className="flex items-center gap-2 border-b pb-2">
                                     <Award className="w-5 h-5 text-primary" />
                                     <h3 className="text-lg font-bold text-dark">
-                                        {user.roleID?.role_name === 'tutor' ? 'Thông tin gia sư' : 'Hồ sơ học viên'}
+                                        {user.role === 'tutor' ? 'Thông tin gia sư' : 'Hồ sơ học viên'}
                                     </h3>
                                 </div>
 
-                                {user.roleID?.role_name === 'tutor' ? (
+                                {user.role === 'tutor' ? (
                                     <div className="space-y-4">
                                         {isEditing ? (
                                             <>
@@ -351,18 +363,28 @@ const Profile = () => {
                                             </>
                                         ) : (
                                             <div className="space-y-4">
-                                                <div className="flex items-start gap-4 p-3 rounded-lg bg-gray-50 border border-gray-100">
-                                                    <BookOpen className="w-5 h-5 text-gray-400 mt-1" />
-                                                    <div>
+                                                <div className="p-3 rounded-lg bg-gray-50 border border-gray-100">
+                                                    <div className="flex items-center gap-2 mb-2">
+                                                        <BookOpen className="w-5 h-5 text-gray-400" />
                                                         <span className="font-medium text-gray-900">Môn dạy</span>
-                                                        <p className="text-sm text-gray-600">{user.subjects || 'Chưa cập nhật'}</p>
+                                                    </div>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {user.subjects && user.subjects.length > 0 ? (
+                                                            (Array.isArray(user.subjects) ? user.subjects : [user.subjects]).map((sub, idx) => (
+                                                                <span key={idx} className="px-3 py-1 bg-primary/10 text-primary text-sm font-medium rounded-full">
+                                                                    {sub}
+                                                                </span>
+                                                            ))
+                                                        ) : (
+                                                            <span className="text-sm text-gray-500">Chưa cập nhật</span>
+                                                        )}
                                                     </div>
                                                 </div>
                                                 <div className="flex items-start gap-4 p-3 rounded-lg bg-gray-50 border border-gray-100">
                                                     <Award className="w-5 h-5 text-gray-400 mt-1" />
                                                     <div>
                                                         <span className="font-medium text-gray-900">Học vấn</span>
-                                                        <p className="text-sm text-gray-600">{user.education || 'Chưa cập nhật'}</p>
+                                                        <p className="text-sm text-gray-600">{user.education?.degree || user.education || 'Chưa cập nhật'}</p>
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-4 p-3 rounded-lg bg-gray-50 border border-gray-100">
@@ -394,7 +416,7 @@ const Profile = () => {
                         </div>
 
                         {/* Button for Student Upgrade */}
-                        {user.roleID?.role_name !== 'tutor' && (
+                        {user.role !== 'tutor' && (
                             <div className="mt-8 pt-8 border-t">
                                 <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100 flexitems-center justify-between">
                                     <div>

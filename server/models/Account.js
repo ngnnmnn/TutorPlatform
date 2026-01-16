@@ -1,10 +1,10 @@
 const mongoose = require('mongoose');
 
 const accountSchema = new mongoose.Schema({
-    roleID: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Role',
-        required: true
+    role: {
+        type: String,
+        enum: ['admin', 'tutor', 'student'],
+        default: 'student'
     },
     full_name: {
         type: String,
@@ -90,6 +90,27 @@ const accountSchema = new mongoose.Schema({
     isApproved: {
         type: Boolean,
         default: false
+    },
+    // Approved Tutor Request data
+    tutorRequestId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'TutorRequest'
+    },
+    certificates: [{
+        name: String,
+        issuedBy: String,
+        year: Number
+    }],
+    evidenceImages: [{
+        type: String
+    }],
+    // Scores from tutor request
+    scores: {
+        math: Number,
+        literature: Number,
+        chemistry: Number,
+        physics: Number,
+        english: Number
     }
 });
 

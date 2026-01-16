@@ -1,5 +1,5 @@
 const Account = require('../models/Account');
-const Role = require('../models/Role');
+// Role is now embedded in Account model as a string enum
 const TutorRequest = require('../models/TutorRequest');
 const Evidence = require('../models/Evidence');
 const Certificate = require('../models/Certificate');
@@ -52,7 +52,7 @@ const registerUser = async (req, res) => {
         return res.status(400).json({ message: 'Email không đúng định dạng' });
     }
 
-    if (!phoneRegex.test(phone)) {
+    if (phone && !phoneRegex.test(phone)) {
         return res.status(400).json({ message: 'Số điện thoại không hợp lệ (VN)' });
     }
 
@@ -63,8 +63,6 @@ const registerUser = async (req, res) => {
 
     try {
         const recaptchaSecret = process.env.RECAPTCHA_SECRET_KEY;
-        // If not set, maybe skip for dev? but better to enforce or mock. 
-        // For now assuming it is set or we handle error.
         if (recaptchaSecret) {
             const verifyUrl = `https://www.google.com/recaptcha/api/siteverify?secret=${recaptchaSecret}&response=${captchaToken}`;
             const recaptchaRes = await axios.post(verifyUrl);
@@ -84,7 +82,6 @@ const registerUser = async (req, res) => {
     if (req.file) {
         const protocol = req.protocol;
         const host = req.get('host');
-        // Normalize path separators for URL
         imgPath = `${protocol}://${host}/uploads/${req.file.filename}`;
     } else if (req.body.img) {
         imgPath = req.body.img;
@@ -104,17 +101,19 @@ const registerUser = async (req, res) => {
             return res.status(400).json({ message: 'Tên đăng nhập đã tồn tại' });
         }
 
-        const phoneExists = await Account.findOne({ phone });
-        if (phoneExists) {
-            if (req.file) deleteFile(req.file.path);
-            return res.status(400).json({ message: 'Số điện thoại đã tồn tại' });
+        if (phone) {
+            const phoneExists = await Account.findOne({ phone });
+            if (phoneExists) {
+                if (req.file) deleteFile(req.file.path);
+                return res.status(400).json({ message: 'Số điện thoại đã tồn tại' });
+            }
         }
 
-        // Handle Role
-        const roleName = role || 'student';
-        let roleDoc = await Role.findOne({ role_name: roleName });
-
-        if (!roleDoc) {
+        // Validate Role - role is now embedded as string enum
+        const validRoles = ['admin', 'tutor', 'student'];
+        const accountRole = role || 'student';
+        if (!validRoles.includes(accountRole)) {
+            if (req.file) deleteFile(req.file.path);
             return res.status(400).json({ message: 'Invalid role' });
         }
 
@@ -129,16 +128,16 @@ const registerUser = async (req, res) => {
         console.log(`Generated verification token for ${email}: ${verificationToken}`);
 
         const account = await Account.create({
-            roleID: roleDoc._id,
+            role: accountRole,
             full_name,
             email,
             address,
             phone,
             username,
             password: hashedPassword,
-            img: imgPath || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png', // Default avatar
+            img: imgPath || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png',
             status: true,
-            isVerified: false, // Not verified yet
+            isVerified: false,
             verificationToken,
             verificationTokenExpires
         });
@@ -173,9 +172,6 @@ const registerUser = async (req, res) => {
                 });
             } catch (error) {
                 console.error("Email send error:", error);
-                // Even if email fails, account is created. Maybe returning a warning?
-                // Or deleting the account? 
-                // For now, let's keep it but tell user.
                 res.status(201).json({
                     message: 'Đăng ký thành công nhưng không thể gửi email xác thực. Vui lòng liên hệ admin.',
                     success: true
@@ -199,7 +195,7 @@ const loginUser = async (req, res) => {
     const { username, password } = req.body;
 
     try {
-        const account = await Account.findOne({ username }).populate('roleID');
+        const account = await Account.findOne({ username });
 
         if (account && (await bcrypt.compare(password, account.password))) {
 
@@ -210,7 +206,7 @@ const loginUser = async (req, res) => {
                 });
             }
 
-            const roleName = account.roleID ? account.roleID.role_name : 'student'; // fallback
+            const roleName = account.role || 'student';
 
             res.json({
                 _id: account._id,
@@ -235,7 +231,7 @@ const loginUser = async (req, res) => {
 // @access  Private
 const getMe = async (req, res) => {
     try {
-        const account = await Account.findById(req.user.id).select('-password').populate('roleID');
+        const account = await Account.findById(req.user.id).select('-password');
         if (!account) {
             return res.status(404).json({ message: 'User not found' });
         }
@@ -261,8 +257,22 @@ const updateUserProfile = async (req, res) => {
 
             // Allow updating Bio/Subjects etc if they are sent (even if empty string to clear)
             if (req.body.bio !== undefined) account.bio = req.body.bio;
-            if (req.body.subjects !== undefined) account.subjects = req.body.subjects;
-            if (req.body.education !== undefined) account.education = req.body.education;
+            if (req.body.subjects !== undefined) {
+                // Convert comma-separated string to array
+                if (typeof req.body.subjects === 'string') {
+                    account.subjects = req.body.subjects.split(',').map(s => s.trim()).filter(s => s);
+                } else {
+                    account.subjects = req.body.subjects;
+                }
+            }
+            if (req.body.education !== undefined) {
+                // Store education as degree string or object
+                if (typeof req.body.education === 'string') {
+                    account.education = { degree: req.body.education };
+                } else {
+                    account.education = req.body.education;
+                }
+            }
             if (req.body.hourlyRate !== undefined) account.hourlyRate = req.body.hourlyRate;
 
             // Handle Image Upload (Profile Update)
@@ -280,10 +290,6 @@ const updateUserProfile = async (req, res) => {
             }
 
             const updatedAccount = await account.save();
-
-            // Populate role for frontend consistency
-            await updatedAccount.populate('roleID');
-
             res.json(updatedAccount);
         } else {
             res.status(404).json({ message: 'User not found' });
@@ -307,8 +313,8 @@ const createTutorRequest = async (req, res) => {
             english_score,
             university,
             Note,
-            certificates, // Expecting JSON string of array of strings or array
-            captchaToken // Recaptcha token
+            certificates,
+            captchaToken
         } = req.body;
 
         // Verify Captcha
@@ -424,11 +430,6 @@ const verifyEmail = async (req, res) => {
         account.verificationTokenExpires = undefined;
         await account.save();
 
-        // Populate role for response (if we want to auto-login, but typically we redirect to login)
-        await account.populate('roleID');
-
-        // We can either return JSON or redirect?
-        // Let's return JSON for frontend to handle
         res.status(200).json({ message: 'Xác thực email thành công! Bạn có thể đăng nhập ngay bây giờ.' });
 
     } catch (error) {

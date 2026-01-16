@@ -117,28 +117,108 @@ const TutorDetail = () => {
                                 Học Vấn & Thành Tựu
                             </h2>
                             <div className="space-y-6">
-                                <div className="flex gap-4">
-                                    <div className="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center flex-shrink-0">
-                                        <Award className="w-6 h-6 text-green-600" />
+                                {/* Education Info */}
+                                {tutor.education?.school && (
+                                    <div className="flex gap-4">
+                                        <div className="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center flex-shrink-0">
+                                            <Award className="w-6 h-6 text-green-600" />
+                                        </div>
+                                        <div>
+                                            <h3 className="font-bold text-dark">{tutor.education?.school}</h3>
+                                            <p className="text-gray-600">{tutor.education?.degree}</p>
+                                            {tutor.education?.graduationYear && (
+                                                <p className="text-sm text-gray-400">Tốt nghiệp năm {tutor.education?.graduationYear}</p>
+                                            )}
+                                        </div>
                                     </div>
-                                    <div>
-                                        <h3 className="font-bold text-dark">{tutor.education?.school}</h3>
-                                        <p className="text-gray-600">{tutor.education?.degree}</p>
-                                        <p className="text-sm text-gray-400">Tốt nghiệp năm {tutor.education?.graduationYear}</p>
+                                )}
+
+                                {/* Certificates from DB */}
+                                {tutor.certificates && tutor.certificates.length > 0 && (
+                                    <>
+                                        <div className="border-t border-gray-100 pt-4">
+                                            <h3 className="font-semibold text-dark mb-4">Chứng chỉ & Bằng cấp</h3>
+                                            <div className="space-y-4">
+                                                {tutor.certificates.map((cert, index) => (
+                                                    <div key={index} className="flex gap-4">
+                                                        <div className="w-12 h-12 rounded-full bg-yellow-50 flex items-center justify-center flex-shrink-0">
+                                                            <Star className="w-6 h-6 text-yellow-600" />
+                                                        </div>
+                                                        <div>
+                                                            <h4 className="font-bold text-dark">{cert.name}</h4>
+                                                            <p className="text-gray-600">
+                                                                {cert.issuedBy} {cert.year && `• Năm ${cert.year}`}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
+
+                                {/* Scores */}
+                                {tutor.scores && Object.values(tutor.scores).some(v => v) && (
+                                    <div className="border-t border-gray-100 pt-4">
+                                        <h3 className="font-semibold text-dark mb-3">Điểm các môn</h3>
+                                        <div className="flex flex-wrap gap-3">
+                                            {tutor.scores.math && (
+                                                <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-medium">
+                                                    Toán: {tutor.scores.math}
+                                                </span>
+                                            )}
+                                            {tutor.scores.literature && (
+                                                <span className="px-3 py-1 bg-purple-50 text-purple-700 rounded-full text-sm font-medium">
+                                                    Văn: {tutor.scores.literature}
+                                                </span>
+                                            )}
+                                            {tutor.scores.chemistry && (
+                                                <span className="px-3 py-1 bg-green-50 text-green-700 rounded-full text-sm font-medium">
+                                                    Hóa: {tutor.scores.chemistry}
+                                                </span>
+                                            )}
+                                            {tutor.scores.physics && (
+                                                <span className="px-3 py-1 bg-orange-50 text-orange-700 rounded-full text-sm font-medium">
+                                                    Lý: {tutor.scores.physics}
+                                                </span>
+                                            )}
+                                            {tutor.scores.english && (
+                                                <span className="px-3 py-1 bg-pink-50 text-pink-700 rounded-full text-sm font-medium">
+                                                    Anh: {tutor.scores.english}
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
-                                {/* Mock achievements for now since seed doesn't fully populate array structure */}
-                                <div className="flex gap-4">
-                                    <div className="w-12 h-12 rounded-full bg-yellow-50 flex items-center justify-center flex-shrink-0">
-                                        <Star className="w-6 h-6 text-yellow-600" />
-                                    </div>
-                                    <div>
-                                        <h3 className="font-bold text-dark">Chứng chỉ Sư phạm Giỏi</h3>
-                                        <p className="text-gray-600">Đạt danh hiệu giáo viên dạy giỏi cấp thành phố năm 2023</p>
-                                    </div>
-                                </div>
+                                )}
                             </div>
                         </section>
+
+                        {/* Evidence Images */}
+                        {tutor.evidenceImages && tutor.evidenceImages.length > 0 && (
+                            <section className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+                                <h2 className="text-xl font-bold text-dark mb-6 flex items-center gap-2">
+                                    <CheckCircle className="w-6 h-6 text-primary" />
+                                    Minh chứng bằng cấp
+                                </h2>
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                    {tutor.evidenceImages.map((img, index) => (
+                                        <a
+                                            key={index}
+                                            href={img}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="aspect-video rounded-xl overflow-hidden border border-gray-200 hover:shadow-lg transition-all"
+                                        >
+                                            <img
+                                                src={img}
+                                                alt={`Evidence ${index + 1}`}
+                                                className="w-full h-full object-cover hover:scale-105 transition-transform"
+                                            />
+                                        </a>
+                                    ))}
+                                </div>
+                            </section>
+                        )}
 
                         {/* Reviews Mock */}
                         <section className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
@@ -221,8 +301,9 @@ const TutorDetail = () => {
                 isOpen={isBookingOpen}
                 onClose={() => setIsBookingOpen(false)}
                 tutorName={tutor.full_name}
-                hourlyRate={tutor.hourlyRate * 2} // Estimate for 2 hours
+                hourlyRate={tutor.hourlyRate}
                 tutorId={tutor._id}
+                tutorSubjects={tutor.subjects}
             />
             <Footer />
         </div>

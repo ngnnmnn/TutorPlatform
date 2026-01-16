@@ -79,14 +79,14 @@ const Feed = () => {
                     <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-6">
                         <div className="flex gap-4">
                             <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-primary font-bold flex-shrink-0">
-                                {user.name.charAt(0)}
+                                {(user.full_name || user.name || 'U').charAt(0)}
                             </div>
                             <div className="flex-1">
                                 <form onSubmit={handleCreatePost}>
                                     <textarea
                                         className="w-full bg-gray-50 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
                                         rows="3"
-                                        placeholder={`Hôm nay bạn muốn chia sẻ gì, ${user.name}?`}
+                                        placeholder={`Hôm nay bạn muốn chia sẻ gì, ${user.full_name || user.name || 'bạn'}?`}
                                         value={newPostContent}
                                         onChange={(e) => setNewPostContent(e.target.value)}
                                     ></textarea>
@@ -119,10 +119,10 @@ const Feed = () => {
                             <div key={post._id} className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
                                 <div className="flex items-center gap-3 mb-4">
                                     <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-primary font-bold">
-                                        {post.author?.name.charAt(0)}
+                                        {(post.author?.full_name || post.author?.name || 'U').charAt(0)}
                                     </div>
                                     <div>
-                                        <h3 className="font-bold text-dark text-sm">{post.author?.name}</h3>
+                                        <h3 className="font-bold text-dark text-sm">{post.author?.full_name || post.author?.name || 'Người dùng'}</h3>
                                         <p className="text-xs text-gray-500">{new Date(post.createdAt).toLocaleDateString('vi-VN')}</p>
                                     </div>
                                 </div>
