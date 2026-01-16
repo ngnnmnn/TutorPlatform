@@ -1,8 +1,14 @@
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const path = require('path');
+<<<<<<< Updated upstream
 const User = require('./models/User');
 const TutorProfile = require('./models/TutorProfile');
+=======
+const Account = require('./models/Account');
+// Role is now embedded in Account model
+
+>>>>>>> Stashed changes
 const bcrypt = require('bcryptjs');
 
 // Load env vars
@@ -23,6 +29,7 @@ const importData = async () => {
         await connectDB();
 
         // Clear existing data
+<<<<<<< Updated upstream
         await User.deleteMany();
         await TutorProfile.deleteMany();
 
@@ -34,13 +41,48 @@ const importData = async () => {
 
         const studentUser = await User.create({
             name: 'Nguyễn Văn A',
+=======
+        await Account.deleteMany();
+
+        console.log('Data Cleared...');
+
+        // Create Accounts
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash('123456', salt);
+
+        // Admin Account
+        await Account.create({
+            role: 'admin',
+            full_name: 'Admin User',
+            email: 'admin@example.com',
+            address: 'Hanoi, Vietnam',
+            phone: '0901234567',
+            username: 'admin',
+            password: hashedPassword,
+            status: true,
+            isVerified: true,
+            img: 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png'
+        });
+
+        // Student Account
+        await Account.create({
+            role: 'student',
+            full_name: 'Nguyen Van Student',
+>>>>>>> Stashed changes
             email: 'student@example.com',
             password: hashedPassword,
             role: 'student'
         });
 
+<<<<<<< Updated upstream
         const tutorUser1 = await User.create({
             name: 'Trần Thị Mai',
+=======
+        // Tutor Account 1
+        await Account.create({
+            role: 'tutor',
+            full_name: 'Tran Thi Mai',
+>>>>>>> Stashed changes
             email: 'mai@example.com',
             password: hashedPassword,
             role: 'tutor'
@@ -69,8 +111,24 @@ const importData = async () => {
             isApproved: true
         });
 
+<<<<<<< Updated upstream
         await TutorProfile.create({
             user: tutorUser2._id,
+=======
+        // Tutor Account 2
+        await Account.create({
+            role: 'tutor',
+            full_name: 'Le Hoang Nam',
+            email: 'nam@example.com',
+            address: 'Hanoi, Vietnam',
+            phone: '0987123456',
+            username: 'tutornam',
+            password: hashedPassword,
+            status: true,
+            isVerified: true,
+            img: 'https://cdn-icons-png.flaticon.com/512/3135/3135789.png',
+            // Tutor Profile Data
+>>>>>>> Stashed changes
             bio: 'Chuyên gia Vật lý, phương pháp dạy dễ hiểu, tận tâm.',
             subjects: ['Vật lý', 'Khoa học tự nhiên'],
             education: {
@@ -84,6 +142,31 @@ const importData = async () => {
             isApproved: true
         });
 
+<<<<<<< Updated upstream
+=======
+        // Additional Student Accounts
+        const studentData = [
+            { name: 'Pham Minh Tuan', email: 'tuan@example.com', phone: '0911223344', user: 'student1' },
+            { name: 'Le Thi Hoa', email: 'hoa@example.com', phone: '0922334455', user: 'student2' },
+            { name: 'Tran Van Bao', email: 'bao@example.com', phone: '0933445566', user: 'student3' }
+        ];
+
+        for (const s of studentData) {
+            await Account.create({
+                role: 'student',
+                full_name: s.name,
+                email: s.email,
+                address: 'Vietnam',
+                phone: s.phone,
+                username: s.user,
+                password: hashedPassword,
+                status: true,
+                isVerified: true,
+                img: 'https://cdn-icons-png.flaticon.com/512/3135/3135768.png'
+            });
+        }
+
+>>>>>>> Stashed changes
         console.log('Data Imported Successfully!');
         process.exit();
     } catch (error) {
