@@ -4,6 +4,7 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { Search, Filter, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { API_URL } from '../config';
 
 const Tutors = () => {
     const [tutors, setTutors] = useState([]);
@@ -24,7 +25,7 @@ const Tutors = () => {
             if (minPrice) params.minPrice = minPrice;
             if (maxPrice) params.maxPrice = maxPrice;
 
-            const res = await axios.get('http://localhost:5000/api/tutors', { params });
+            const res = await axios.get(`${API_URL}/api/tutors`, { params });
             setTutors(res.data);
         } catch (error) {
             console.error(error);

@@ -3,6 +3,7 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import axios from 'axios';
 import { User, Mail, MapPin, Phone, BookOpen, Star, Clock, Award, Camera, Save, X, Edit2 } from 'lucide-react';
+import { API_URL } from '../config';
 
 // Input Helper Component
 const InputField = ({ icon: Icon, label, value, onChange, type = "text", placeholder }) => (
@@ -53,7 +54,7 @@ const Profile = () => {
                 }
             };
 
-            const res = await axios.get('http://localhost:5000/api/auth/me', config);
+            const res = await axios.get(`${API_URL}/api/auth/me`, config);
             setUser(res.data);
             setFormData({
                 full_name: res.data.full_name || '',
@@ -117,7 +118,7 @@ const Profile = () => {
                 data.append('img', file);
             }
 
-            const res = await axios.put('http://localhost:5000/api/auth/me', data, config);
+            const res = await axios.put(`${API_URL}/api/auth/me`, data, config);
             setUser(res.data);
             setIsEditing(false);
 

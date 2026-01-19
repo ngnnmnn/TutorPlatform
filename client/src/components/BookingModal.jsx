@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { X, Calendar, Clock, MessageSquare, CheckCircle, BookOpen, Video, MapPin, Loader } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { API_URL } from '../config';
 
 const BookingModal = ({ isOpen, onClose, tutorName, hourlyRate, tutorId, tutorSubjects = [] }) => {
     const [step, setStep] = useState(1);
@@ -70,7 +71,7 @@ const BookingModal = ({ isOpen, onClose, tutorName, hourlyRate, tutorId, tutorSu
                 headers: { Authorization: `Bearer ${token}` }
             };
 
-            await axios.post('http://localhost:5000/api/bookings', {
+            await axios.post(`${API_URL}/api/bookings`, {
                 tutorId,
                 subject: formData.subject,
                 date: formData.date,

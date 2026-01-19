@@ -4,6 +4,7 @@ import { Menu, X, BookOpen, User, Shield, Bell } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import logo from '../assets/logo.png';
+import { API_URL } from '../config';
 
 const Navbar = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -25,7 +26,7 @@ const Navbar = () => {
     const fetchNotifications = async () => {
         try {
             const token = localStorage.getItem('token');
-            const res = await axios.get('http://localhost:5000/api/notifications', {
+            const res = await axios.get(`${API_URL}/api/notifications`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setNotifications(res.data.notifications);
@@ -38,7 +39,7 @@ const Navbar = () => {
     const markAsRead = async (id) => {
         try {
             const token = localStorage.getItem('token');
-            await axios.put(`http://localhost:5000/api/notifications/${id}/read`, {}, {
+            await axios.put(`${API_URL}/api/notifications/${id}/read`, {}, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             // Update local state
@@ -116,7 +117,7 @@ const Navbar = () => {
                                                             onClick={async () => {
                                                                 try {
                                                                     const token = localStorage.getItem('token');
-                                                                    await axios.put('http://localhost:5000/api/notifications/read-all', {}, {
+                                                                    await axios.put(`${API_URL}/api/notifications/read-all`, {}, {
                                                                         headers: { Authorization: `Bearer ${token}` }
                                                                     });
                                                                     setNotifications(notifications.map(n => ({ ...n, read: true })));

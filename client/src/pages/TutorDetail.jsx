@@ -5,6 +5,7 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import BookingModal from '../components/BookingModal';
 import { Star, MapPin, Award, BookOpen, Clock, Calendar, Shield, CheckCircle } from 'lucide-react';
+import { API_URL } from '../config';
 
 const TutorDetail = () => {
     const { id } = useParams();
@@ -15,7 +16,7 @@ const TutorDetail = () => {
     useEffect(() => {
         const fetchTutor = async () => {
             try {
-                const res = await axios.get(`http://localhost:5000/api/tutors/${id}`);
+                const res = await axios.get(`${API_URL}/api/tutors/${id}`);
                 setTutor(res.data);
                 setLoading(false);
             } catch (error) {

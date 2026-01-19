@@ -5,6 +5,7 @@ import Footer from '../components/Footer';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import { Star, MapPin } from 'lucide-react';
+import { API_URL } from '../config';
 
 const Home = () => {
     const [tutors, setTutors] = useState([]);
@@ -14,7 +15,7 @@ const Home = () => {
         const fetchTutors = async () => {
             try {
                 // Fetch top 3 tutors for the featured section
-                const res = await axios.get('http://localhost:5000/api/tutors?limit=3');
+                const res = await axios.get(`${API_URL}/api/tutors?limit=3`);
                 setTutors(res.data.slice(0, 3));
                 setLoading(false);
             } catch (error) {
