@@ -50,15 +50,18 @@ const registerUser = async (req, res) => {
     const phoneRegex = /(03|05|07|08|09|01[2|6|8|9])+([0-9]{8})\b/;
 
     if (!emailRegex.test(email)) {
+        console.log(`Registration failed: Invalid email format - ${email}`);
         return res.status(400).json({ message: 'Email không đúng định dạng' });
     }
 
     if (phone && !phoneRegex.test(phone)) {
+        console.log(`Registration failed: Invalid phone format - ${phone}`);
         return res.status(400).json({ message: 'Số điện thoại không hợp lệ (VN)' });
     }
 
     // Verify Captcha
     if (!captchaToken) {
+        console.log(`Registration failed: Missing captcha token`);
         return res.status(400).json({ message: 'Vui lòng hoàn thành Captcha' });
     }
 
@@ -68,6 +71,7 @@ const registerUser = async (req, res) => {
             const verifyUrl = `https://www.google.com/recaptcha/api/siteverify?secret=${recaptchaSecret}&response=${captchaToken}`;
             const recaptchaRes = await axios.post(verifyUrl);
             if (!recaptchaRes.data.success) {
+                console.log(`Registration failed: Recaptcha verification failed`, recaptchaRes.data);
                 if (req.file) deleteFile(req.file.path);
                 return res.status(400).json({ message: 'Captcha không hợp lệ, vui lòng thử lại' });
             }
@@ -92,12 +96,14 @@ const registerUser = async (req, res) => {
         // Check if account exists (email or username)
         const emailExists = await Account.findOne({ email });
         if (emailExists) {
+            console.log(`Registration failed: Email already exists - ${email}`);
             if (req.file) deleteFile(req.file.path);
             return res.status(400).json({ message: 'Email đã tồn tại' });
         }
 
         const usernameExists = await Account.findOne({ username });
         if (usernameExists) {
+            console.log(`Registration failed: Username already exists - ${username}`);
             if (req.file) deleteFile(req.file.path);
             return res.status(400).json({ message: 'Tên đăng nhập đã tồn tại' });
         }

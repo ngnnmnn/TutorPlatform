@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import Navbar from '../components/Navbar';
@@ -11,7 +11,11 @@ const VerifyEmail = () => {
     const [status, setStatus] = useState('loading'); // loading, success, error
     const [message, setMessage] = useState('');
 
+    const effectCalled = useRef(false);
+
     useEffect(() => {
+        if (effectCalled.current) return;
+
         const verifyAccount = async () => {
             try {
                 const res = await axios.get(`${API_URL}/api/auth/verify/${token}`);
@@ -24,6 +28,7 @@ const VerifyEmail = () => {
         };
 
         if (token) {
+            effectCalled.current = true;
             verifyAccount();
         }
     }, [token]);

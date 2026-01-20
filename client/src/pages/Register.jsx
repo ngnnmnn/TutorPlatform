@@ -92,11 +92,12 @@ const Register = () => {
             // localStorage.setItem('user', JSON.stringify(res.data));
             // window.location.href = '/';
         } catch (err) {
-            console.error("Registration Error:", err);
+            console.error("Registration Error Details:", err);
             let errMsg = 'Đăng ký thất bại. Vui lòng thử lại.';
 
             if (err.response) {
                 // Server responded with a status code
+                console.error("Server Error Data:", err.response.data);
                 errMsg = err.response.data?.message || `Lỗi máy chủ (${err.response.status})`;
             } else if (err.request) {
                 // request made but no response
