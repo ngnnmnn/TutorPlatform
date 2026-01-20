@@ -8,6 +8,7 @@ import {
     Check, X, AlertCircle, Loader, MessageSquare, Link as LinkIcon,
     Filter, ChevronDown, CheckCircle
 } from 'lucide-react';
+import { API_URL } from '../config';
 
 const statusConfig = {
     pending: { label: 'Chờ Admin duyệt', color: 'bg-yellow-100 text-yellow-700', icon: AlertCircle },
@@ -42,7 +43,7 @@ const MyBookings = () => {
         try {
             const token = localStorage.getItem('token');
             const config = { headers: { Authorization: `Bearer ${token}` } };
-            const res = await axios.get('http://localhost:5000/api/bookings/my', config);
+            const res = await axios.get(`${API_URL}/api/bookings/my`, config);
             setBookings(res.data);
         } catch (error) {
             console.error('Error fetching bookings:', error);
@@ -52,6 +53,27 @@ const MyBookings = () => {
     };
 
     // Removed handleTutorConfirm
+    const handleTutorConfirm = async (bookingId, confirmed) => {
+        setActionLoading(bookingId);
+        try {
+            const token = localStorage.getItem('token');
+            const config = { headers: { Authorization: `Bearer ${token}` } };
+            await axios.put(`${API_URL}/api/bookings/${bookingId}/tutor-confirm`, {
+                confirmed,
+                tutorNote,
+                meetLink
+            }, config);
+            fetchBookings();
+            setConfirmModal(null);
+            setMeetLink('');
+            setTutorNote('');
+        } catch (error) {
+            console.error('Error:', error);
+            alert(error.response?.data?.message || 'Có lỗi xảy ra');
+        } finally {
+            setActionLoading(null);
+        }
+    };
 
     const handleCancel = async (bookingId) => {
         if (!window.confirm('Bạn có chắc muốn hủy lịch học này?')) return;
@@ -60,7 +82,7 @@ const MyBookings = () => {
         try {
             const token = localStorage.getItem('token');
             const config = { headers: { Authorization: `Bearer ${token}` } };
-            await axios.put(`http://localhost:5000/api/bookings/${bookingId}/cancel`, {}, config);
+            await axios.put(`${API_URL}/api/bookings/${bookingId}/cancel`, {}, config);
             fetchBookings();
         } catch (error) {
             console.error('Error:', error);

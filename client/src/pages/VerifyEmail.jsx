@@ -4,6 +4,7 @@ import axios from 'axios';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { CheckCircle, XCircle, Loader } from 'lucide-react';
+import { API_URL } from '../config';
 
 const VerifyEmail = () => {
     const { token } = useParams();
@@ -13,7 +14,7 @@ const VerifyEmail = () => {
     useEffect(() => {
         const verifyAccount = async () => {
             try {
-                const res = await axios.get(`http://localhost:5000/api/auth/verify/${token}`);
+                const res = await axios.get(`${API_URL}/api/auth/verify/${token}`);
                 setStatus('success');
                 setMessage(res.data.message);
             } catch (err) {

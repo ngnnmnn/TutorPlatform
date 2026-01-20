@@ -5,6 +5,7 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { User, Lock, LogIn } from 'lucide-react';
 import loginBg from '../assets/login_bg.jpg';
+import { API_URL } from '../config';
 
 const Login = () => {
     const navigate = useNavigate();
@@ -21,7 +22,7 @@ const Login = () => {
         setError('');
 
         try {
-            const res = await axios.post('http://localhost:5000/api/auth/login', formData);
+            const res = await axios.post(`${API_URL}/api/auth/login`, formData);
             localStorage.setItem('token', res.data.token);
             localStorage.setItem('user', JSON.stringify(res.data));
             // Navigate to home and force refresh to update auth state

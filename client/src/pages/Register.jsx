@@ -6,6 +6,7 @@ import Footer from '../components/Footer';
 import { User, Mail, Lock, BookOpen, MapPin, Phone, Image as ImageIcon, CheckCircle, X } from 'lucide-react';
 import ReCAPTCHA from 'react-google-recaptcha';
 import registerBg from '../assets/register_bg.jpg';
+import { API_URL } from '../config';
 
 const Register = () => {
     const navigate = useNavigate();
@@ -79,7 +80,7 @@ const Register = () => {
                 data.append('img', file);
             }
 
-            const res = await axios.post('http://localhost:5000/api/auth/register', data, {
+            const res = await axios.post(`${API_URL}/api/auth/register`, data, {
                 headers: {
                     'Content-Type': 'multipart/form-data'
                 }

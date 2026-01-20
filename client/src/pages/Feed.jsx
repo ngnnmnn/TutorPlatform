@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import Navbar from '../components/Navbar';
 import { Heart, MessageCircle, Share2, Send, Image as ImageIcon } from 'lucide-react';
+import { API_URL } from '../config';
 
 const Feed = () => {
     const [posts, setPosts] = useState([]);
@@ -15,7 +16,7 @@ const Feed = () => {
 
     const fetchPosts = async () => {
         try {
-            const res = await axios.get('http://localhost:5000/api/posts');
+            const res = await axios.get(`${API_URL}/api/posts`);
             setPosts(res.data);
             setLoading(false);
         } catch (error) {
@@ -34,7 +35,7 @@ const Feed = () => {
                 headers: { Authorization: `Bearer ${token}` }
             };
 
-            const res = await axios.post('http://localhost:5000/api/posts', {
+            const res = await axios.post(`${API_URL}/api/posts`, {
                 content: newPostContent
             }, config);
 
@@ -58,7 +59,7 @@ const Feed = () => {
                 headers: { Authorization: `Bearer ${token}` }
             };
 
-            const res = await axios.put(`http://localhost:5000/api/posts/${postId}/like`, {}, config);
+            const res = await axios.put(`${API_URL}/api/posts/${postId}/like`, {}, config);
 
             // Update local state
             setPosts(posts.map(post =>

@@ -16,6 +16,7 @@ import {
     TrendingUp,
     Shield
 } from 'lucide-react';
+import { API_URL } from '../config';
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
@@ -70,7 +71,7 @@ const AdminDashboard = () => {
 
     const fetchStats = async () => {
         try {
-            const res = await axios.get('http://localhost:5000/api/admin/stats', getConfig());
+            const res = await axios.get(`${API_URL}/api/admin/stats`, getConfig());
             setStats(res.data);
         } catch (error) {
             console.error('Error fetching stats:', error);
@@ -86,7 +87,7 @@ const AdminDashboard = () => {
             if (activeTab === 'rejected') statusQuery = '&status=3';
 
             const res = await axios.get(
-                `http://localhost:5000/api/admin/tutor-requests?page=${currentPage}${statusQuery}`,
+                `${API_URL}/api/admin/tutor-requests?page=${currentPage}${statusQuery}`,
                 getConfig()
             );
             setRequests(res.data.requests);
@@ -101,7 +102,7 @@ const AdminDashboard = () => {
     const fetchBookings = async () => {
         try {
             setLoading(true);
-            const res = await axios.get('http://localhost:5000/api/bookings/all', getConfig());
+            const res = await axios.get(`${API_URL}/api/bookings/all`, getConfig());
             setBookings(res.data);
         } catch (error) {
             console.error('Error fetching bookings:', error);
@@ -127,7 +128,7 @@ const AdminDashboard = () => {
 
         setActionLoading(true);
         try {
-            await axios.put(`http://localhost:5000/api/admin/tutor-requests/${id}/approve`, {}, getConfig());
+            await axios.put(`${API_URL}/api/admin/tutor-requests/${id}/approve`, {}, getConfig());
             alert('Đã duyệt yêu cầu thành công!');
             setSelectedRequest(null);
             fetchRequests();
@@ -145,7 +146,7 @@ const AdminDashboard = () => {
         setActionLoading(true);
         try {
             await axios.put(
-                `http://localhost:5000/api/admin/tutor-requests/${selectedRequest._id}/reject`,
+                `${API_URL}/api/admin/tutor-requests/${selectedRequest._id}/reject`,
                 { reason: rejectReason },
                 getConfig()
             );
@@ -173,7 +174,7 @@ const AdminDashboard = () => {
         setActionLoading(true);
         try {
             await axios.put(
-                `http://localhost:5000/api/bookings/${bookingId}/admin-approve`,
+                `${API_URL}/api/bookings/${bookingId}/admin-approve`,
                 {
                     approved,
                     adminNote,

@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+
+import { API_URL } from '../config';
 import {
     Calendar, Clock, User, BookOpen, Video, MapPin,
     ChevronLeft, ChevronRight, ExternalLink, CheckCircle,
@@ -64,7 +66,7 @@ const Schedule = () => {
             const endDate = weekDates[6].toISOString().split('T')[0];
 
             const res = await axios.get(
-                `http://localhost:5000/api/bookings/schedule?startDate=${startDate}&endDate=${endDate}`,
+                `${API_URL}/api/bookings/schedule?startDate=${startDate}&endDate=${endDate}`,
                 config
             );
             setBookings(res.data);

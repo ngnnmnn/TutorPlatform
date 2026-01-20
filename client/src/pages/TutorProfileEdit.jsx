@@ -7,6 +7,7 @@ import {
     User, Mail, MapPin, Phone, BookOpen, Clock, Award, Camera, Save, X, Edit2,
     GraduationCap, FileText, Image, Plus, Trash2, School
 } from 'lucide-react';
+import { API_URL } from '../config';
 
 // Input Helper Component
 const InputField = ({ icon: Icon, label, value, onChange, type = "text", placeholder, disabled = false }) => (
@@ -85,7 +86,7 @@ const TutorProfileEdit = () => {
                 headers: { Authorization: `Bearer ${token}` }
             };
 
-            const res = await axios.get('http://localhost:5000/api/auth/me', config);
+            const res = await axios.get(`${API_URL}/api/auth/me`, config);
             const data = res.data;
 
             // Check if user is tutor
@@ -213,7 +214,7 @@ const TutorProfileEdit = () => {
                 data.append('evidence', f);
             });
 
-            const res = await axios.put('http://localhost:5000/api/tutors/profile', data, config);
+            const res = await axios.put(`${API_URL}/api/tutors/profile`, data, config);
             setUser(res.data);
 
             // Update local storage

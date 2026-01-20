@@ -6,6 +6,7 @@ import { BookOpen, Upload, Plus, Trash, GraduationCap, FileText, CheckCircle, Al
 import { useNavigate } from 'react-router-dom';
 import ReCAPTCHA from 'react-google-recaptcha';
 import { X } from 'lucide-react';
+import { API_URL } from '../config';
 
 const ScoreInput = ({ label, name, value, onChange }) => (
     <div className="flex flex-col">
@@ -60,7 +61,7 @@ const BecomeTutor = () => {
     useEffect(() => {
         const fetchSubjects = async () => {
             try {
-                const res = await axios.get('http://localhost:5000/api/subjects');
+                const res = await axios.get(`${API_URL}/api/subjects`);
                 setAvailableSubjects(res.data);
             } catch (err) {
                 console.error("Error fetching subjects:", err);
@@ -174,7 +175,7 @@ const BecomeTutor = () => {
                 }
             };
 
-            await axios.post('http://localhost:5000/api/auth/tutor-request', formData, config);
+            await axios.post(`${API_URL}/api/auth/tutor-request`, formData, config);
             alert("Gửi yêu cầu thành công! Vui lòng chờ xét duyệt.");
             navigate('/profile');
 
