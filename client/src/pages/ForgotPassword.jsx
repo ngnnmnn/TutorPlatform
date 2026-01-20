@@ -5,6 +5,7 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { Mail, ArrowLeft, CheckCircle } from 'lucide-react';
 import loginBg from '../assets/login_bg.jpg';
+import { API_URL } from '../config';
 
 const ForgotPassword = () => {
     const [email, setEmail] = useState('');
@@ -20,7 +21,7 @@ const ForgotPassword = () => {
         setMessage('');
 
         try {
-            const res = await axios.post('http://localhost:5000/api/auth/forgot-password', { email });
+            const res = await axios.post(`${API_URL}/api/auth/forgot-password`, { email });
             setMessage(res.data.message);
             setSuccess(true);
         } catch (err) {

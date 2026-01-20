@@ -4,6 +4,7 @@ import axios from 'axios';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { CheckCircle, Calendar, Clock, BookOpen, CreditCard, Copy, ArrowRight, Loader, Package } from 'lucide-react';
+import { API_URL } from '../config';
 
 const Payment = () => {
     const { bookingId } = useParams();
@@ -29,7 +30,7 @@ const Payment = () => {
                     headers: { Authorization: `Bearer ${token}` }
                 };
 
-                const res = await axios.get(`http://localhost:5000/api/bookings/${bookingId}`, config);
+                const res = await axios.get(`${API_URL}/api/bookings/${bookingId}`, config);
                 setBooking(res.data);
                 setLoading(false);
             } catch (err) {
@@ -252,7 +253,7 @@ const Payment = () => {
                                             try {
                                                 const token = localStorage.getItem('token');
                                                 const config = { headers: { Authorization: `Bearer ${token}` } };
-                                                const res = await axios.post('http://localhost:5000/api/orders', { comboId: combo._id, price: Number(price) }, config);
+                                                const res = await axios.post(`${API_URL}/api/orders`, { comboId: combo._id, price: Number(price) }, config);
                                                 if (res.data.approvalStatus === 'pending') {
                                                     alert('Đã gửi yêu cầu mua combo. Vui lòng chờ Admin duyệt.');
                                                 } else {

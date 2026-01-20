@@ -109,7 +109,7 @@ const MyBookings = () => {
         try {
             const token = localStorage.getItem('token');
             const config = { headers: { Authorization: `Bearer ${token}` } };
-            await axios.put(`http://localhost:5000/api/bookings/${bookingId}/complete`, {}, config);
+            await axios.put(`${API_URL}/api/bookings/${bookingId}/complete`, {}, config);
             fetchBookings();
         } catch (error) {
             console.error('Error:', error);

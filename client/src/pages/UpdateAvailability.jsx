@@ -4,6 +4,7 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { Calendar, Clock, Save, ArrowLeft, Check, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { API_URL } from '../config';
 
 const UpdateAvailability = () => {
     const navigate = useNavigate();
@@ -28,7 +29,7 @@ const UpdateAvailability = () => {
             const config = { headers: { Authorization: `Bearer ${token}` } };
 
             // 1. Get Time Slots
-            const slotsRes = await axios.get('http://localhost:5000/api/schedule/time-slots');
+            const slotsRes = await axios.get(`${API_URL}/api/schedule/time-slots`);
             setTimeSlots(slotsRes.data);
 
             // 2. Get Availability for the range
@@ -36,7 +37,7 @@ const UpdateAvailability = () => {
             const end = new Date(startDate);
             end.setDate(startDate.getDate() + 7);
 
-            const avaiRes = await axios.get('http://localhost:5000/api/schedule/availability', {
+            const avaiRes = await axios.get(`${API_URL}/api/schedule/availability`, {
                 params: {
                     start: startDate.toISOString(),
                     end: end.toISOString()
@@ -138,7 +139,7 @@ const UpdateAvailability = () => {
 
             // Send requests
             const promises = Object.keys(grouped).map(dateKey => {
-                return axios.post('http://localhost:5000/api/schedule/availability', {
+                return axios.post(`${API_URL}/api/schedule/availability`, {
                     date: dateKey,
                     timeSchIds: grouped[dateKey]
                 }, config);
@@ -269,8 +270,8 @@ const UpdateAvailability = () => {
                                                         <button
                                                             onClick={() => toggleSlot(day, slot._id)}
                                                             className={`w-full h-12 rounded-lg border-2 transition-all duration-200 flex items-center justify-center ${selected
-                                                                    ? 'bg-primary border-primary text-white shadow-md shadow-primary/20'
-                                                                    : 'bg-white border-gray-100 text-gray-300 hover:border-primary/50'
+                                                                ? 'bg-primary border-primary text-white shadow-md shadow-primary/20'
+                                                                : 'bg-white border-gray-100 text-gray-300 hover:border-primary/50'
                                                                 }`}
                                                         >
                                                             {selected && <Check className="w-6 h-6" />}

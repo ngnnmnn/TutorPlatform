@@ -4,6 +4,7 @@ import axios from 'axios';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { Lock, Check, AlertCircle, Save, ArrowLeft } from 'lucide-react';
+import { API_URL } from '../config';
 
 const ChangePassword = () => {
     const navigate = useNavigate();
@@ -46,7 +47,7 @@ const ChangePassword = () => {
                 }
             };
 
-            await axios.put('http://localhost:5000/api/auth/change-password',
+            await axios.put(`${API_URL}/api/auth/change-password`,
                 {
                     currentPassword: formData.currentPassword,
                     newPassword: formData.newPassword

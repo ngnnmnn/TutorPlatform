@@ -52,15 +52,15 @@ const TutorDetail = () => {
         const fetchSchedule = async () => {
             try {
                 // Get slots
-                const slotsRes = await axios.get('http://localhost:5000/api/schedule/time-slots');
+                const slotsRes = await axios.get(`${API_URL}/api/schedule/time-slots`);
                 setTimeSlots(slotsRes.data);
 
                 // Get availability (Weekly view)
-                const avaiRes = await axios.get(`http://localhost:5000/api/schedule/tutor/${id}`);
+                const avaiRes = await axios.get(`${API_URL}/api/schedule/tutor/${id}`);
                 setAvailability(avaiRes.data);
 
                 // Get bookings
-                const bookingsRes = await axios.get(`http://localhost:5000/api/schedule/tutor/${id}/bookings`);
+                const bookingsRes = await axios.get(`${API_URL}/api/schedule/tutor/${id}/bookings`);
                 setBookings(bookingsRes.data);
 
             } catch (error) {
@@ -101,7 +101,7 @@ const TutorDetail = () => {
                 const end = new Date(formData.date);
                 end.setHours(23, 59, 59, 999);
 
-                const res = await axios.get(`http://localhost:5000/api/schedule/tutor/${tutor._id}`, {
+                const res = await axios.get(`${API_URL}/api/schedule/tutor/${tutor._id}`, {
                     params: {
                         start: start.toISOString(),
                         end: end.toISOString()
@@ -202,7 +202,7 @@ const TutorDetail = () => {
             const selectedSlot = availableSlots.find(s => s.timeSchId._id === formData.slotId);
             if (!selectedSlot) throw new Error("Invalid slot");
 
-            const res = await axios.post('http://localhost:5000/api/bookings', {
+            const res = await axios.post(`${API_URL}/api/bookings`, {
                 tutorId: tutor._id,
                 subject: formData.subject,
                 date: formData.date,
