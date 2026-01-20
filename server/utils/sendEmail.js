@@ -1,24 +1,27 @@
-const { Resend } = require('resend');
+const nodemailer = require('nodemailer');
 
 const sendEmail = async (options) => {
-    // Initialize Resend with API key
-    const resend = new Resend(process.env.RESEND_API_KEY);
-
-    // Send email using Resend API (uses HTTPS, works on Render)
-    const { data, error } = await resend.emails.send({
-        from: `Tutor Platform <${process.env.EMAIL_FROM || 'onboarding@resend.dev'}>`,
+    // 1. Create a transporter
+    const transporter = nodemailer.createTransport({
+        host: 'smtp.gmail.com',
+        port: 587,
+        secure: false, // true for 465, false for other ports
+        auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS
+        }
+    });
+    // 3. OK
+    // 2. Define email options
+    const mailOptions = {
+        from: `Tutor Platform <${process.env.EMAIL_USER}>`,
         to: options.email,
         subject: options.subject,
         html: options.message
-    });
+    };
 
-    if (error) {
-        console.error('Email send error:', error);
-        throw new Error(error.message);
-    }
-
-    console.log('Email sent successfully:', data);
-    return data;
+    // 3. Send email
+    await transporter.sendMail(mailOptions);
 };
 
 module.exports = sendEmail;
