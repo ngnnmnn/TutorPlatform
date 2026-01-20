@@ -5,8 +5,8 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { Star, MapPin, Award, BookOpen, Clock, Calendar, Shield, CheckCircle, X, Video, MessageSquare, Loader } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import BookingModal from '../components/BookingModal';
-import { Star, MapPin, Award, BookOpen, Clock, Calendar, Shield, CheckCircle } from 'lucide-react';
+
+
 import { API_URL } from '../config';
 
 const TutorDetail = () => {
