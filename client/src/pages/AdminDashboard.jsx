@@ -341,7 +341,7 @@ const AdminDashboard = () => {
                         </div>
                     )}
 
-                    {/* Content Areaa */}
+                    {/* Content Area */}
                     <div className="overflow-x-auto">
                         {loading ? (
                             <div className="flex items-center justify-center py-12">
