@@ -167,18 +167,31 @@ const registerUser = async (req, res) => {
             `;
 
             try {
+                console.log('=== STARTING EMAIL SEND ===');
+                console.log('To:', account.email);
+                console.log('Subject:', 'Xác thực tài khoản TutorPlatform');
+                console.log('BREVO_API_KEY present:', !!process.env.BREVO_API_KEY);
+                console.log('EMAIL_FROM:', process.env.EMAIL_FROM);
+
                 await sendEmail({
                     email: account.email,
                     subject: 'Xác thực tài khoản TutorPlatform',
                     message
                 });
 
+                console.log('=== EMAIL SENT SUCCESSFULLY ===');
                 res.status(201).json({
                     message: 'Đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản.',
                     success: true
                 });
             } catch (error) {
-                console.error("Email send error:", error);
+                console.error('=== EMAIL SEND FAILED ===');
+                console.error('Error name:', error.name);
+                console.error('Error message:', error.message);
+                if (error.response) {
+                    console.error('Response status:', error.response.status);
+                    console.error('Response data:', JSON.stringify(error.response.data || error.response.body, null, 2));
+                }
                 res.status(201).json({
                     message: 'Đăng ký thành công nhưng không thể gửi email xác thực. Vui lòng liên hệ admin.',
                     success: true
