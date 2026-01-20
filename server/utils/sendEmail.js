@@ -11,7 +11,7 @@ const sendEmail = async (options) => {
             pass: process.env.EMAIL_PASS
         }
     });
-
+    // 3. OK
     // 2. Define email options
     const mailOptions = {
         from: `Tutor Platform <${process.env.EMAIL_USER}>`,
