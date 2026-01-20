@@ -13,9 +13,14 @@ import BecomeTutor from './pages/BecomeTutor';
 import VerifyEmail from './pages/VerifyEmail';
 import NotFound from './pages/NotFound';
 import AdminDashboard from './pages/AdminDashboard';
+import ForgotPassword from './pages/ForgotPassword';
+import ChangePassword from './pages/ChangePassword';
+import Combos from './pages/Combos';
+import UpdateAvailability from './pages/UpdateAvailability';
 
 import Schedule from './pages/Schedule';
 import MyBookings from './pages/MyBookings';
+import Payment from './pages/Payment';
 
 function App() {
   return (
@@ -27,13 +32,19 @@ function App() {
           <Route path="/tutors/:id" element={<TutorDetail />} />
           <Route path="/tutor-profile/edit" element={<TutorProfileEdit />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/register" element={<Register />} />
           <Route path="/verify/:token" element={<VerifyEmail />} />
           <Route path="/feed" element={<Feed />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/change-password" element={<ChangePassword />} />
+          <Route path="/combos" element={<Combos />} />
+          <Route path="/schedule/update" element={<UpdateAvailability />} />
           <Route path="/become-tutor" element={<BecomeTutor />} />
           <Route path="/schedule" element={<Schedule />} />
           <Route path="/my-bookings" element={<MyBookings />} />
+          <Route path="/payment/:bookingId" element={<Payment />} />
+          <Route path="/payment/combo" element={<Payment />} />
           <Route path="/admin" element={<AdminDashboard />} />
           {/* 404 Catch-all Route */}
           <Route path="*" element={<NotFound />} />

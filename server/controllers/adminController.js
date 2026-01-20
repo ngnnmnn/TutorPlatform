@@ -2,6 +2,8 @@ const TutorRequest = require('../models/TutorRequest');
 const Account = require('../models/Account');
 const Evidence = require('../models/Evidence');
 const Certificate = require('../models/Certificate');
+const TeachSubject = require('../models/TeachSubject');
+const Subject = require('../models/Subject');
 const sendEmail = require('../utils/sendEmail');
 
 // Status: 1 = Pending, 2 = Approved, 3 = Rejected
@@ -31,11 +33,13 @@ const getAllTutorRequests = async (req, res) => {
             tutorRequests.map(async (request) => {
                 const certificates = await Certificate.find({ tutorrequestID: request._id });
                 const evidence = await Evidence.find({ tutorrequestID: request._id });
+                const subjects = await TeachSubject.find({ tutorReId: request._id }).populate('subjectID');
 
                 return {
                     ...request.toObject(),
                     certificates,
-                    evidence
+                    evidence,
+                    subjects
                 };
             })
         );
@@ -71,11 +75,13 @@ const getTutorRequestById = async (req, res) => {
 
         const certificates = await Certificate.find({ tutorrequestID: tutorRequest._id });
         const evidence = await Evidence.find({ tutorrequestID: tutorRequest._id });
+        const subjects = await TeachSubject.find({ tutorReId: tutorRequest._id }).populate('subjectID');
 
         res.json({
             ...tutorRequest.toObject(),
             certificates,
-            evidence
+            evidence,
+            subjects
         });
     } catch (error) {
         console.error('Get Tutor Request Error:', error);

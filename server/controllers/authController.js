@@ -470,4 +470,102 @@ const verifyEmail = async (req, res) => {
     }
 };
 
-module.exports = { registerUser, loginUser, getMe, updateUserProfile, createTutorRequest, verifyEmail };
+// @desc    Forgot Password
+// @route   POST /api/auth/forgot-password
+// @access  Public
+const forgotPassword = async (req, res) => {
+    const { email } = req.body;
+
+    try {
+        const account = await Account.findOne({ email });
+
+        if (!account) {
+            return res.status(404).json({ message: 'Không tìm thấy tài khoản với email này' });
+        }
+
+        // Generate hardcoded password hash for '123456'
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash('123456', salt);
+
+        account.password = hashedPassword;
+        await account.save();
+
+        // Send email
+        const message = `
+            <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+                <h1 style="color: #4F46E5;">Khôi phục mật khẩu</h1>
+                <p>Xin chào <strong>${account.full_name}</strong>,</p>
+                <p>Mật khẩu của bạn đã được đặt lại thành công.</p>
+                <p>Mật khẩu mới của bạn là: <strong style="font-size: 18px; color: #DC2626;">123456</strong></p>
+                <p>Vui lòng đăng nhập và đổi lại mật khẩu để đảm bảo an toàn.</p>
+                <div style="margin: 30px 0;">
+                    <a href="${process.env.CLIENT_URL || 'http://localhost:5173'}/login" 
+                       style="background-color: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                        Đăng nhập ngay
+                    </a>
+                </div>
+            </div>
+        `;
+
+        try {
+            await sendEmail({
+                email: account.email,
+                subject: 'Mật khẩu mới - TutorPlatform',
+                message
+            });
+
+            res.json({ message: 'Mật khẩu mới đã được gửi vào email của bạn. Vui lòng kiểm tra.' });
+        } catch (emailError) {
+            console.error('Email send error:', emailError);
+            res.status(500).json({ message: 'Đã đặt lại mật khẩu nhưng không gửi được email. Mật khẩu mới là 123456' });
+        }
+    } catch (error) {
+        console.error('Forgot Password Error:', error);
+        res.status(500).json({ message: 'Server Error' });
+    }
+};
+
+// @desc    Change Password
+// @route   PUT /api/auth/change-password
+// @access  Private
+const changePassword = async (req, res) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+
+        // Validation
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({ message: 'Vui lòng nhập đầy đủ thông tin' });
+        }
+
+        if (newPassword.length < 6) {
+            return res.status(400).json({ message: 'Mật khẩu mới phải có ít nhất 6 ký tự' });
+        }
+
+        const account = await Account.findById(req.user.id);
+
+        if (!account) {
+            return res.status(404).json({ message: 'Không tìm thấy tài khoản' });
+        }
+
+        // Check current password
+        const isMatch = await bcrypt.compare(currentPassword, account.password);
+        if (!isMatch) {
+            return res.status(400).json({ message: 'Mật khẩu hiện tại không đúng' });
+        }
+
+        // Hash new password
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+        account.password = hashedPassword;
+        await account.save();
+
+        res.json({ message: 'Đổi mật khẩu thành công' });
+
+    } catch (error) {
+        console.error('Change Password Error:', error);
+        res.status(500).json({ message: 'Server Error' });
+    }
+};
+
+module.exports = { registerUser, loginUser, getMe, updateUserProfile, createTutorRequest, verifyEmail, forgotPassword, changePassword };

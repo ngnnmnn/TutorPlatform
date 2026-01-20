@@ -241,7 +241,13 @@ const Schedule = () => {
                                                         {booking && (
                                                             <div
                                                                 className={`${getBookingColor(booking)} text-white rounded-lg p-2 h-full cursor-pointer hover:opacity-90 transition-all shadow-sm`}
-                                                                onClick={() => navigate(`/booking/${booking._id}`)}
+                                                                onClick={() => {
+                                                                    if (booking.meetLink) {
+                                                                        window.open(booking.meetLink, '_blank');
+                                                                    } else {
+                                                                        navigate(`/booking/${booking._id}`);
+                                                                    }
+                                                                }}
                                                             >
                                                                 <div className="text-xs font-bold truncate">
                                                                     {booking.subject}
@@ -355,7 +361,7 @@ const Schedule = () => {
                                         {/* Price */}
                                         <div className="text-right">
                                             <div className="text-xl font-bold text-primary">
-                                                {booking.price?.toLocaleString('vi-VN')} đ
+                                                {(booking.price || booking.orderId?.comboID?.price)?.toLocaleString('vi-VN')} đ
                                             </div>
                                             <div className="text-sm text-gray-500">
                                                 {parseInt(booking.endTime) - parseInt(booking.startTime)} giờ

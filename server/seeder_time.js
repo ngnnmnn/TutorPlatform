@@ -39,7 +39,7 @@ const seedTimeSchedules = async () => {
     ];
 
     try {
-        await TimeSchedule.deleteMany(); // Clear existing
+        await TimeSchedule.deleteMany();
         await TimeSchedule.insertMany(schedules);
         console.log('Time Schedules Seeded!');
         process.exit();

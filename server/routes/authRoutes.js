@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { registerUser, loginUser, getMe, updateUserProfile, createTutorRequest, verifyEmail } = require('../controllers/authController');
+const { registerUser, loginUser, getMe, updateUserProfile, createTutorRequest, verifyEmail, forgotPassword, changePassword } = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
 const multer = require('multer');
 const path = require('path');
@@ -44,6 +44,8 @@ router.post('/login', loginUser);
 router.get('/me', protect, getMe);
 router.put('/me', protect, upload.single('img'), updateUserProfile); // Update profile
 router.post('/tutor-request', protect, uploadFields, createTutorRequest); // Tutor/Upgrade Request
+router.put('/change-password', protect, changePassword);
 router.get('/verify/:token', verifyEmail);
+router.post('/forgot-password', forgotPassword);
 
 module.exports = router;

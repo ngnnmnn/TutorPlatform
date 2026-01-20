@@ -3,6 +3,7 @@ const TutorRequest = require('../models/TutorRequest');
 const Certificate = require('../models/Certificate');
 const Booking = require('../models/Booking');
 const Combo = require('../models/Combo');
+const TeachSubject = require('../models/TeachSubject');
 
 // @desc    Get all tutors with filters
 // @route   GET /api/tutors
@@ -44,11 +45,15 @@ const getTutors = async (req, res) => {
 
             const displayPrice = bookingCount < 50 ? price1 : price2;
 
+            // Fetch subjects
+            const teachSubjects = await TeachSubject.find({ tutorReId: request._id }).populate('subjectID');
+            const subjectNames = teachSubjects.map(ts => ts.subjectID?.sub_name).filter(Boolean);
+
             return {
                 ...account._doc,
-                subject: request.subject || 'Gia sư',
-                subjects: [request.subject || 'Chưa cập nhật'],
-                bio: request.Note || 'Chưa có giới thiệu',
+                subject: 'Gia sư',
+                subjects: subjectNames,
+                bio: request.intro || request.Note || 'Chưa có giới thiệu',
                 university: request.university || 'Chưa cập nhật',
                 education: {
                     school: request.university || 'Chưa cập nhật',
@@ -68,7 +73,7 @@ const getTutors = async (req, res) => {
         // 4. Manual filtering by subject or secondary keyword search
         if (subject) {
             tutors = tutors.filter(t =>
-                t.subject.toLowerCase().includes(subject.toLowerCase())
+                t.subjects.some(s => s.toLowerCase().includes(subject.toLowerCase()))
             );
         }
 
@@ -100,8 +105,8 @@ const getTutors = async (req, res) => {
 
                     return {
                         ...account._doc,
-                        subject: request.subject || 'Gia sư',
-                        subjects: [request.subject || 'Chưa cập nhật'],
+                        subject: 'Gia sư',
+                        subjects: [],
                         bio: request.Note || 'Chưa có giới thiệu',
                         university: request.university || 'Chưa cập nhật',
                         education: {
@@ -149,6 +154,10 @@ const getTutorById = async (req, res) => {
             // Find Certificates
             const certificates = await Certificate.find({ tutorrequestID: request._id });
 
+            // Find Subjects from TeachSubject using tutorReId (same as Admin)
+            const teachSubjects = await TeachSubject.find({ tutorReId: request._id }).populate('subjectID');
+            const subjectList = teachSubjects.map(ts => ts.subjectID ? ts.subjectID.sub_name : null).filter(s => s);
+
             // Count completed/confirmed bookings for dynamic pricing
             const bookingCount = await Booking.countDocuments({
                 tutor: account._id,
@@ -167,7 +176,7 @@ const getTutorById = async (req, res) => {
             // Merge data
             const tutorData = {
                 ...account._doc,
-                subject: request.subject,
+                subject: 'Gia sư',
                 university: request.university,
                 Note: request.Note,
                 scores: {
@@ -186,8 +195,9 @@ const getTutorById = async (req, res) => {
                     school: request.university,
                     degree: 'Gia sư'
                 },
-                subjects: [request.subject],
+                subjects: subjectList,
                 bio: request.Note,
+                intro: request.intro,
                 hourlyRate: displayPrice
             };
 

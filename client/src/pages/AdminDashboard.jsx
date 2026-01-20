@@ -38,6 +38,9 @@ const AdminDashboard = () => {
     const [meetLink, setMeetLink] = useState('');
     const [adminNote, setAdminNote] = useState('');
 
+    // Combo Orders State
+    const [orders, setOrders] = useState([]);
+
     const user = JSON.parse(localStorage.getItem('user'));
 
     useEffect(() => {
@@ -48,6 +51,8 @@ const AdminDashboard = () => {
 
         if (activeTab === 'bookings') {
             fetchBookings();
+        } else if (activeTab === 'orders') {
+            fetchOrders();
         } else {
             fetchStats();
             fetchRequests();
@@ -100,6 +105,18 @@ const AdminDashboard = () => {
             setBookings(res.data);
         } catch (error) {
             console.error('Error fetching bookings:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const fetchOrders = async () => {
+        try {
+            setLoading(true);
+            const res = await axios.get('http://localhost:5000/api/orders', getConfig());
+            setOrders(res.data);
+        } catch (error) {
+            console.error('Error fetching orders:', error);
         } finally {
             setLoading(false);
         }
@@ -215,7 +232,7 @@ const AdminDashboard = () => {
                 </div>
 
                 {/* Stats Cards (Only Show in Requests Tab) */}
-                {activeTab !== 'bookings' && stats && (
+                {activeTab !== 'bookings' && activeTab !== 'orders' && stats && (
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                             <div className="flex items-center justify-between mb-4">
@@ -286,13 +303,22 @@ const AdminDashboard = () => {
                                     : 'border-transparent text-gray-500 hover:text-gray-700'
                                     }`}
                             >
-                                Quản lý Booking
+                                Booking
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('orders')}
+                                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${activeTab === 'orders'
+                                    ? 'border-indigo-500 text-indigo-600'
+                                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                                    }`}
+                            >
+                                Đơn hàng Combo
                             </button>
                         </nav>
                     </div>
 
                     {/* Sub-tabs for Tutor Requests */}
-                    {activeTab !== 'bookings' && (
+                    {activeTab !== 'bookings' && activeTab !== 'orders' && (
                         <div className="bg-gray-50 px-6 py-2 border-b border-gray-100 flex gap-4">
                             {[
                                 { key: 'all', label: 'Tất cả' },
@@ -335,6 +361,7 @@ const AdminDashboard = () => {
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Gia sư</th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Môn/Thời gian</th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Hình thức</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Giá</th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Trạng thái</th>
                                             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Hành động</th>
                                         </tr>
@@ -362,17 +389,100 @@ const AdminDashboard = () => {
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                     {booking.learningMode === 'online' ? 'Online' : 'Offline'}
                                                 </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-primary">
+                                                    {(booking.price || booking.orderId?.comboID?.price)?.toLocaleString('vi-VN')} đ
+                                                </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     {getBookingStatusBadge(booking.status)}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                    {booking.status === 'tutor_confirmed' && (
-                                                        <button
-                                                            onClick={() => setSelectedBooking(booking)}
-                                                            className="text-indigo-600 hover:text-indigo-900 bg-indigo-50 px-3 py-1 rounded-lg"
-                                                        >
-                                                            Duyệt ngay
-                                                        </button>
+                                                    {['pending', 'tutor_confirmed'].includes(booking.status) && (
+                                                        <div className="flex justify-end gap-2">
+                                                            <button
+                                                                onClick={() => setSelectedBooking(booking)}
+                                                                className="text-white bg-green-600 hover:bg-green-700 px-3 py-1 rounded-lg text-xs"
+                                                            >
+                                                                Duyệt
+                                                            </button>
+                                                            <button
+                                                                onClick={() => {
+                                                                    if (window.confirm('Từ chối lịch booking này?')) {
+                                                                        handleBookingApprove(booking._id, false);
+                                                                    }
+                                                                }}
+                                                                className="text-white bg-red-600 hover:bg-red-700 px-3 py-1 rounded-lg text-xs"
+                                                            >
+                                                                Từ chối
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            )
+                        ) : activeTab === 'orders' ? (
+                            /* Orders Table */
+                            orders.length === 0 ? (
+                                <div className="text-center py-12 text-gray-500">
+                                    <AlertCircle className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                                    <p>Không có đơn hàng nào</p>
+                                </div>
+                            ) : (
+                                <table className="min-w-full divide-y divide-gray-100">
+                                    <thead className="bg-gray-50">
+                                        <tr>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Người mua</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Gói Combo</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Giá</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ngày đặt</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Trạng thái</th>
+                                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Hành động</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="bg-white divide-y divide-gray-100">
+                                        {orders.map(order => (
+                                            <tr key={order._id} className="hover:bg-gray-50">
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <div className="flex items-center">
+                                                        <div className="ml-3">
+                                                            <p className="text-sm font-medium text-gray-900">{order.accountId?.full_name}</p>
+                                                            <p className="text-xs text-gray-500">{order.accountId?.email}</p>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <div className="text-sm text-gray-900 font-medium">{order.comboID?.combo_name}</div>
+                                                    <div className="text-xs text-gray-500">{order.comboID?.slot} slot</div>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-primary">
+                                                    {order.comboID?.price?.toLocaleString('vi-VN')} đ
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    {new Date(order.createAt).toLocaleDateString('vi-VN')}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    {order.approvalStatus === 'pending' && <span className="px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800 flex items-center gap-1 w-fit"><Clock className="w-3 h-3" /> Chờ duyệt</span>}
+                                                    {order.approvalStatus === 'approved' && <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800 flex items-center gap-1 w-fit"><CheckCircle className="w-3 h-3" /> Đã duyệt</span>}
+                                                    {order.approvalStatus === 'rejected' && <span className="px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800 flex items-center gap-1 w-fit"><XCircle className="w-3 h-3" /> Từ chối</span>}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                    {order.approvalStatus === 'pending' && (
+                                                        <div className="flex justify-end gap-2">
+                                                            <button
+                                                                onClick={() => handleOrderApprove(order._id, 'approved')}
+                                                                className="text-white bg-green-600 hover:bg-green-700 px-3 py-1 rounded-lg text-xs"
+                                                            >
+                                                                Duyệt
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleOrderApprove(order._id, 'rejected')}
+                                                                className="text-white bg-red-600 hover:bg-red-700 px-3 py-1 rounded-lg text-xs"
+                                                            >
+                                                                Từ chối
+                                                            </button>
+                                                        </div>
                                                     )}
                                                 </td>
                                             </tr>
@@ -602,6 +712,20 @@ const AdminDashboard = () => {
                                 <h4 className="font-semibold mb-2">Đại học</h4>
                                 <p className="text-gray-700">{selectedRequest.university}</p>
                             </div>
+
+                            {/* Subjects */}
+                            {selectedRequest.subjects?.length > 0 && (
+                                <div>
+                                    <h4 className="font-semibold mb-2">Môn học đăng ký</h4>
+                                    <div className="flex flex-wrap gap-2">
+                                        {selectedRequest.subjects.map((sub, i) => (
+                                            <span key={i} className="px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full text-sm font-medium border border-indigo-100">
+                                                {sub.subjectID?.sub_name || 'Môn học ẩn'}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Note */}
                             {selectedRequest.Note && (

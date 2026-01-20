@@ -3,7 +3,6 @@ const dotenv = require('dotenv');
 const path = require('path');
 const Subject = require('./models/Subject');
 const Account = require('./models/Account');
-const Role = require('./models/Role');
 const TeachSubject = require('./models/TeachSubject');
 const TutorRequest = require('./models/TutorRequest');
 
@@ -43,14 +42,8 @@ const importData = async () => {
         console.log('Subjects created:', createdSubjects.map(s => s.sub_name));
 
         // 3. Find Tutor Role
-        const tutorRole = await Role.findOne({ role_name: 'tutor' });
-        if (!tutorRole) {
-            console.error('Tutor role not found. Please run the main seeder first.');
-            process.exit(1);
-        }
-
         // 4. Get all tutors
-        const tutors = await Account.find({ roleID: tutorRole._id });
+        const tutors = await Account.find({ role: 'tutor' });
         console.log(`Found ${tutors.length} tutors.`);
 
         // 5. Assign 1-3 random subjects to each tutor

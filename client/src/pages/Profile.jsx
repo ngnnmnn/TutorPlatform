@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import axios from 'axios';
-import { User, Mail, MapPin, Phone, BookOpen, Star, Clock, Award, Camera, Save, X, Edit2 } from 'lucide-react';
+import { User, Mail, MapPin, Phone, BookOpen, Star, Clock, Award, Camera, Save, X, Edit2, Lock } from 'lucide-react';
 
 // Input Helper Component
 const InputField = ({ icon: Icon, label, value, onChange, type = "text", placeholder }) => (
@@ -182,6 +182,13 @@ const Profile = () => {
                                         Chỉnh sửa hồ sơ gia sư
                                     </button>
                                 )}
+                                <button
+                                    onClick={() => window.location.href = '/change-password'}
+                                    className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg backdrop-blur-sm font-medium transition-all flex items-center gap-2"
+                                >
+                                    <Lock className="w-4 h-4" />
+                                    Đổi mật khẩu
+                                </button>
                                 <button
                                     onClick={() => setIsEditing(true)}
                                     className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg backdrop-blur-sm font-medium transition-all flex items-center gap-2"

@@ -1,5 +1,7 @@
 const Booking = require('../models/Booking');
 const Account = require('../models/Account');
+const Combo = require('../models/Combo'); // Import Combo
+const OrderCombo = require('../models/OderCombo'); // Import OrderCombo (sic)
 const { createNotification } = require('./notificationController');
 
 // @desc    Create a new booking
@@ -16,15 +18,50 @@ const createBooking = async (req, res) => {
             return res.status(404).json({ message: 'Tutor not found' });
         }
 
-        // Calculate price based on tutor's hourly rate
-        const startHour = parseInt(startTime.split(':')[0]);
-        const endHour = parseInt(endTime.split(':')[0]);
-        const hours = endHour - startHour;
-        const price = tutor.hourlyRate * hours;
+        // Calculate price based on tutor's booking count (Dynamic Pricing)
+        // If bookingCount > 50 => 200,000, else 150,000
+        // NOTE: This assumes 1 slot = 1 session.
+        // We do typically calculate hours, but the prompt specified fixed session price based on count.
+        // Let's stick to the "per session" logic or "per slot" logic.
+        // The frontend sends start/end time for ONE slot.
+        // So price = (count > 50 ? 200000 : 150000) * 1;
+
+        let sessionPrice = 150000;
+        if (tutor.bookingCount && tutor.bookingCount > 50) {
+            sessionPrice = 200000;
+        }
+
+        const price = sessionPrice; // Fixed price per booked slot/session
+
+        // Find/Create Combo order
+        // 1. Find the 1-slot combo matching the price
+        let combo = await Combo.findOne({ slot: 1, price: price });
+
+        // Fallback: if not found, just find any 1-slot combo? Or error?
+        // Let's assume seeder run. If strictly not found, maybe create a temporary one or fail?
+        // Better to fail gracefully or warn.
+        if (!combo) {
+            // Try finding any 1 slot combo
+            combo = await Combo.findOne({ slot: 1 });
+        }
+
+        if (!combo) {
+            return res.status(500).json({ message: 'System Error: Single Booking Combo not configuration found.' });
+        }
+
+        // 2. Create OrderCombo for this single booking
+        const order = await OrderCombo.create({
+            comboID: combo._id,
+            accountId: req.user.id,
+            used_slot: 1,
+            remaining_slot: 0,
+            status: true // Active/Completed
+        });
 
         const booking = await Booking.create({
             student: req.user.id,
             tutor: tutorId,
+            orderId: order._id, // Link to the new Order
             subject,
             date,
             startTime,
@@ -40,7 +77,15 @@ const createBooking = async (req, res) => {
             .populate('tutor', 'full_name email img')
             .populate('student', 'full_name email img');
 
-        // Notify Tutor
+        // Notify Tutor (Optional: The user said tutor only sees when admin approves.
+        // However, keeping a notification might be useful? 
+        // PROMPT: "chuyển sang cho admin gia sư chỉ có thể xem khi admin chấp thuận và thông báo"
+        // This suggests we should NOT notify the tutor yet. Or notify them but they can't act?
+        // If they can't see the booking, the link will fail or show nothing.
+        // let's COMMENT OUT the notification to tutor for now, or send it to Admin?
+        // For now, let's remove the tutor notification to stay strict to "tutor only sees when admin approves".
+
+        /* 
         await createNotification({
             recipient: tutorId,
             sender: req.user.id,
@@ -49,6 +94,9 @@ const createBooking = async (req, res) => {
             message: `Bạn có yêu cầu đặt lịch mới môn ${subject}.`,
             link: '/my-bookings'
         });
+        */
+
+        // Note: In a real app we might want to notify ADMIN here.
 
         res.status(201).json(populatedBooking);
     } catch (error) {
@@ -67,7 +115,12 @@ const getMyBookings = async (req, res) => {
 
         let query = {};
         if (user.role === 'tutor') {
-            query = { tutor: userId };
+            // Tutor only sees approved, completed, or cancelled bookings (after approval)
+            // They do NOT see pending bookings anymore.
+            query = {
+                tutor: userId,
+                status: { $in: ['approved', 'completed', 'cancelled'] }
+            };
         } else {
             query = { student: userId };
         }
@@ -75,6 +128,13 @@ const getMyBookings = async (req, res) => {
         const bookings = await Booking.find(query)
             .populate('tutor', 'full_name email img subjects hourlyRate')
             .populate('student', 'full_name email img phone')
+            .populate({
+                path: 'orderId',
+                populate: {
+                    path: 'comboID', // Note: Schema field is comboID not comboId
+                    select: 'price combo_name'
+                }
+            })
             .sort({ date: 1, startTime: 1 });
 
         res.json(bookings);
@@ -99,6 +159,13 @@ const getAllBookings = async (req, res) => {
         const bookings = await Booking.find(query)
             .populate('tutor', 'full_name email img')
             .populate('student', 'full_name email img phone')
+            .populate({
+                path: 'orderId',
+                populate: {
+                    path: 'comboID',
+                    select: 'price combo_name'
+                }
+            })
             .sort({ createdAt: -1 });
 
         res.json(bookings);
@@ -328,6 +395,13 @@ const getSchedule = async (req, res) => {
         const bookings = await Booking.find(query)
             .populate('tutor', 'full_name email img subjects')
             .populate('student', 'full_name email img')
+            .populate({
+                path: 'orderId',
+                populate: {
+                    path: 'comboID',
+                    select: 'price combo_name'
+                }
+            })
             .sort({ date: 1, startTime: 1 });
 
         res.json(bookings);
@@ -344,7 +418,14 @@ const getBookingById = async (req, res) => {
     try {
         const booking = await Booking.findById(req.params.id)
             .populate('tutor', 'full_name email img phone subjects hourlyRate')
-            .populate('student', 'full_name email img phone');
+            .populate('student', 'full_name email img phone')
+            .populate({
+                path: 'orderId',
+                populate: {
+                    path: 'comboID',
+                    select: 'price combo_name'
+                }
+            });
 
         if (!booking) {
             return res.status(404).json({ message: 'Booking not found' });
@@ -387,8 +468,21 @@ const completeBooking = async (req, res) => {
             return res.status(400).json({ message: 'Only approved bookings can be marked as completed' });
         }
 
-        booking.status = 'completed';
         const updatedBooking = await booking.save();
+
+        // Notify Admin
+        // Find all admins
+        const admins = await Account.find({ role: 'admin' });
+        for (const admin of admins) {
+            await createNotification({
+                recipient: admin._id,
+                sender: req.user.id,
+                type: 'booking_completed',
+                title: 'Báo cáo hoàn thành lớp học',
+                message: `Gia sư ${user.full_name} thông báo đã hoàn thành lịch học môn ${booking.subject}.`,
+                link: '/admin'
+            });
+        }
 
         res.json(updatedBooking);
     } catch (error) {

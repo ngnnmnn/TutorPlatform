@@ -78,6 +78,7 @@ const Navbar = () => {
                     {/* Desktop Menu */}
                     <div className="hidden md:flex items-center space-x-8">
                         <Link to="/tutors" className="text-gray-600 hover:text-primary transition-colors font-medium">Tìm Gia Sư</Link>
+                        <Link to="/combos" className="text-gray-600 hover:text-primary transition-colors font-medium">Combo</Link>
                         <Link to="/feed" className="text-gray-600 hover:text-primary transition-colors font-medium">Bảng Tin</Link>
                         <Link to="/resources" className="text-gray-600 hover:text-primary transition-colors font-medium">Tài Liệu</Link>
 
@@ -224,6 +225,7 @@ const Navbar = () => {
                     >
                         <div className="px-4 pt-2 pb-6 space-y-2">
                             <Link to="/tutors" className="block px-3 py-2 text-gray-600 hover:text-primary font-medium rounded-md hover:bg-gray-50">Tìm Gia Sư</Link>
+                            <Link to="/combos" className="block px-3 py-2 text-gray-600 hover:text-primary font-medium rounded-md hover:bg-gray-50">Combo</Link>
                             <Link to="/feed" className="block px-3 py-2 text-gray-600 hover:text-primary font-medium rounded-md hover:bg-gray-50">Bảng Tin</Link>
                             <Link to="/resources" className="block px-3 py-2 text-gray-600 hover:text-primary font-medium rounded-md hover:bg-gray-50">Tài Liệu</Link>
 

@@ -27,6 +27,11 @@ const orderComboSchema = new mongoose.Schema({
     remaining_slot: {
         type: Number,
         required: true
+    },
+    approvalStatus: {
+        type: String,
+        enum: ['pending', 'approved', 'rejected'],
+        default: 'pending'
     }
 });
 

@@ -6,12 +6,12 @@ import Footer from '../components/Footer';
 import {
     Calendar, Clock, User, BookOpen, Video, MapPin,
     Check, X, AlertCircle, Loader, MessageSquare, Link as LinkIcon,
-    Filter, ChevronDown
+    Filter, ChevronDown, CheckCircle
 } from 'lucide-react';
 
 const statusConfig = {
-    pending: { label: 'Chờ xác nhận', color: 'bg-yellow-100 text-yellow-700', icon: AlertCircle },
-    tutor_confirmed: { label: 'Đã xác nhận - Chờ duyệt', color: 'bg-blue-100 text-blue-700', icon: Clock },
+    pending: { label: 'Chờ Admin duyệt', color: 'bg-yellow-100 text-yellow-700', icon: AlertCircle },
+    tutor_confirmed: { label: 'Đã xác nhận', color: 'bg-blue-100 text-blue-700', icon: Clock },
     approved: { label: 'Đã duyệt', color: 'bg-green-100 text-green-700', icon: Check },
     rejected: { label: 'Từ chối', color: 'bg-red-100 text-red-700', icon: X },
     cancelled: { label: 'Đã hủy', color: 'bg-gray-100 text-gray-700', icon: X },
@@ -24,9 +24,6 @@ const MyBookings = () => {
     const [loading, setLoading] = useState(true);
     const [filterStatus, setFilterStatus] = useState('all');
     const [actionLoading, setActionLoading] = useState(null);
-    const [confirmModal, setConfirmModal] = useState(null);
-    const [meetLink, setMeetLink] = useState('');
-    const [tutorNote, setTutorNote] = useState('');
 
     const userData = JSON.parse(localStorage.getItem('user') || '{}');
     const isTutor = userData.role === 'tutor';
@@ -54,27 +51,7 @@ const MyBookings = () => {
         }
     };
 
-    const handleTutorConfirm = async (bookingId, confirmed) => {
-        setActionLoading(bookingId);
-        try {
-            const token = localStorage.getItem('token');
-            const config = { headers: { Authorization: `Bearer ${token}` } };
-            await axios.put(`http://localhost:5000/api/bookings/${bookingId}/tutor-confirm`, {
-                confirmed,
-                tutorNote,
-                meetLink
-            }, config);
-            fetchBookings();
-            setConfirmModal(null);
-            setMeetLink('');
-            setTutorNote('');
-        } catch (error) {
-            console.error('Error:', error);
-            alert(error.response?.data?.message || 'Có lỗi xảy ra');
-        } finally {
-            setActionLoading(null);
-        }
-    };
+    // Removed handleTutorConfirm
 
     const handleCancel = async (bookingId) => {
         if (!window.confirm('Bạn có chắc muốn hủy lịch học này?')) return;
@@ -84,6 +61,33 @@ const MyBookings = () => {
             const token = localStorage.getItem('token');
             const config = { headers: { Authorization: `Bearer ${token}` } };
             await axios.put(`http://localhost:5000/api/bookings/${bookingId}/cancel`, {}, config);
+            fetchBookings();
+        } catch (error) {
+            console.error('Error:', error);
+            alert(error.response?.data?.message || 'Có lỗi xảy ra');
+        } finally {
+            setActionLoading(null);
+        }
+    };
+
+    const isClassEnded = (dateStr, endTimeStr) => {
+        const now = new Date();
+        const bookingDate = new Date(dateStr);
+        const [hours, minutes] = endTimeStr.split(':').map(Number);
+
+        bookingDate.setHours(hours, minutes || 0, 0, 0);
+
+        return now > bookingDate;
+    };
+
+    const handleComplete = async (bookingId) => {
+        if (!window.confirm('Xác nhận buổi học đã hoàn thành? Admin sẽ nhận được thông báo này.')) return;
+
+        setActionLoading(bookingId);
+        try {
+            const token = localStorage.getItem('token');
+            const config = { headers: { Authorization: `Bearer ${token}` } };
+            await axios.put(`http://localhost:5000/api/bookings/${bookingId}/complete`, {}, config);
             fetchBookings();
         } catch (error) {
             console.error('Error:', error);
@@ -128,20 +132,30 @@ const MyBookings = () => {
 
                     {/* Filter */}
                     <div className="flex items-center gap-3">
-                        <Filter className="w-5 h-5 text-gray-400" />
-                        <select
-                            value={filterStatus}
-                            onChange={(e) => setFilterStatus(e.target.value)}
-                            className="px-4 py-2 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
-                        >
-                            <option value="all">Tất cả trạng thái</option>
-                            <option value="pending">Chờ xác nhận</option>
-                            <option value="tutor_confirmed">Chờ admin duyệt</option>
-                            <option value="approved">Đã duyệt</option>
-                            <option value="rejected">Từ chối</option>
-                            <option value="completed">Hoàn thành</option>
-                            <option value="cancelled">Đã hủy</option>
-                        </select>
+                        {isTutor && (
+                            <button
+                                onClick={() => navigate('/schedule/update')}
+                                className="px-4 py-2 bg-white text-primary border border-primary rounded-xl font-medium hover:bg-primary/5 transition-colors flex items-center gap-2"
+                            >
+                                <Calendar className="w-4 h-4" />
+                                <span className="hidden sm:inline">Cập nhật lịch rảnh</span>
+                            </button>
+                        )}
+                        <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-xl border border-gray-200">
+                            <Filter className="w-5 h-5 text-gray-400" />
+                            <select
+                                value={filterStatus}
+                                onChange={(e) => setFilterStatus(e.target.value)}
+                                className="bg-transparent outline-none text-sm font-medium text-gray-700 min-w-[120px]"
+                            >
+                                <option value="all">Tất cả trạng thái</option>
+                                <option value="pending">Chờ xác nhận</option>
+                                <option value="tutor_confirmed">Chờ admin duyệt</option>
+                                <option value="approved">Đã duyệt</option>
+                                <option value="rejected">Từ chối</option>
+                                <option value="completed">Hoàn thành</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
@@ -289,40 +303,23 @@ const MyBookings = () => {
                                             <div className="flex flex-col items-end gap-3">
                                                 <div className="text-right">
                                                     <div className="text-xl font-bold text-primary">
-                                                        {booking.price?.toLocaleString('vi-VN')} đ
+                                                        {(booking.price || booking.orderId?.comboID?.price)?.toLocaleString('vi-VN')} đ
                                                     </div>
                                                 </div>
 
                                                 {/* Tutor Actions */}
-                                                {isTutor && booking.status === 'pending' && (
-                                                    <div className="flex gap-2">
-                                                        <button
-                                                            onClick={() => setConfirmModal(booking)}
-                                                            disabled={actionLoading === booking._id}
-                                                            className="px-4 py-2 bg-green-500 text-white rounded-lg text-sm font-medium hover:bg-green-600 transition-colors flex items-center gap-1"
-                                                        >
-                                                            <Check className="w-4 h-4" />
-                                                            Xác nhận
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleTutorConfirm(booking._id, false)}
-                                                            disabled={actionLoading === booking._id}
-                                                            className="px-4 py-2 bg-red-500 text-white rounded-lg text-sm font-medium hover:bg-red-600 transition-colors flex items-center gap-1"
-                                                        >
-                                                            <X className="w-4 h-4" />
-                                                            Từ chối
-                                                        </button>
-                                                    </div>
-                                                )}
-
-                                                {/* Cancel Button */}
-                                                {['pending', 'tutor_confirmed'].includes(booking.status) && (
+                                                {isTutor && booking.status === 'approved' && isClassEnded(booking.date, booking.endTime) && (
                                                     <button
-                                                        onClick={() => handleCancel(booking._id)}
+                                                        onClick={() => handleComplete(booking._id)}
                                                         disabled={actionLoading === booking._id}
-                                                        className="text-sm text-red-500 hover:text-red-600 transition-colors"
+                                                        className="px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2"
                                                     >
-                                                        Hủy lịch
+                                                        {actionLoading === booking._id ? (
+                                                            <Loader className="w-4 h-4 animate-spin" />
+                                                        ) : (
+                                                            <CheckCircle className="w-4 h-4" />
+                                                        )}
+                                                        Hoàn thành
                                                     </button>
                                                 )}
                                             </div>
@@ -332,82 +329,11 @@ const MyBookings = () => {
                             );
                         })}
                     </div>
-                )}
+                )
+                }
             </div>
 
-            {/* Tutor Confirm Modal */}
-            {confirmModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-black/60" onClick={() => setConfirmModal(null)} />
-                    <div className="relative bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl">
-                        <h3 className="text-xl font-bold text-dark mb-4">Xác nhận lịch dạy</h3>
-
-                        <div className="bg-gray-50 rounded-xl p-4 mb-4">
-                            <div className="text-sm text-gray-600">
-                                <strong>Môn:</strong> {confirmModal.subject}
-                            </div>
-                            <div className="text-sm text-gray-600">
-                                <strong>Ngày:</strong> {new Date(confirmModal.date).toLocaleDateString('vi-VN')}
-                            </div>
-                            <div className="text-sm text-gray-600">
-                                <strong>Giờ:</strong> {confirmModal.startTime} - {confirmModal.endTime}
-                            </div>
-                            <div className="text-sm text-gray-600">
-                                <strong>Học viên:</strong> {confirmModal.student?.full_name}
-                            </div>
-                        </div>
-
-                        {confirmModal.learningMode === 'online' && (
-                            <div className="mb-4">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Link Google Meet (không bắt buộc)
-                                </label>
-                                <div className="relative">
-                                    <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                                    <input
-                                        type="url"
-                                        placeholder="https://meet.google.com/xxx-xxxx-xxx"
-                                        className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl focus:ring-primary focus:border-primary"
-                                        value={meetLink}
-                                        onChange={(e) => setMeetLink(e.target.value)}
-                                    />
-                                </div>
-                                <p className="text-xs text-gray-500 mt-1">
-                                    Admin có thể thêm link Meet khi duyệt nếu bạn không nhập
-                                </p>
-                            </div>
-                        )}
-
-                        <div className="mb-6">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Ghi chú cho học viên
-                            </label>
-                            <textarea
-                                placeholder="Chuẩn bị tài liệu, sách vở..."
-                                className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-primary focus:border-primary h-20 resize-none"
-                                value={tutorNote}
-                                onChange={(e) => setTutorNote(e.target.value)}
-                            />
-                        </div>
-
-                        <div className="flex gap-3">
-                            <button
-                                onClick={() => setConfirmModal(null)}
-                                className="flex-1 py-2.5 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-colors"
-                            >
-                                Hủy
-                            </button>
-                            <button
-                                onClick={() => handleTutorConfirm(confirmModal._id, true)}
-                                disabled={actionLoading}
-                                className="flex-1 py-2.5 bg-primary text-white rounded-xl font-medium hover:bg-primary/90 transition-colors"
-                            >
-                                {actionLoading ? 'Đang xử lý...' : 'Xác nhận dạy'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            {/* Modal removed */}
 
             <Footer />
         </div>

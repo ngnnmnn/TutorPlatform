@@ -8,8 +8,13 @@ const bookingSchema = mongoose.Schema({
     },
     orderId: {
         type: mongoose.Schema.Types.ObjectId,
-        required: true,
+        required: false, // Changed from true to false to allow direct single bookings
         ref: 'OrderCombo'
+    },
+    tutor: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true,
+        ref: 'Account'
     },
     subject: {
         type: String,

@@ -12,6 +12,7 @@ const connectDB = require('./config/db');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+// Server setup
 
 // Connect to Database
 connectDB();
@@ -29,6 +30,8 @@ app.use('/api/posts', require('./routes/postRoutes'));
 app.use('/api/notifications', require('./routes/notificationRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
 app.use('/api/subjects', require('./routes/subjectRoutes'));
+app.use('/api/schedule', require('./routes/scheduleRoutes'));
+app.use('/api/orders', require('./routes/orderComboRoutes'));
 
 app.get('/', (req, res) => {
     res.send('Tutor Platform API is running');
