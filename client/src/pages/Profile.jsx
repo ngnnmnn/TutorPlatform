@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import axios from 'axios';
-import { User, Mail, MapPin, Phone, BookOpen, Star, Clock, Award, Camera, Save, X, Edit2 } from 'lucide-react';
+import { User, Mail, MapPin, Phone, BookOpen, Star, Clock, Award, Camera, Save, X, Edit2, Lock } from 'lucide-react';
 import { API_URL } from '../config';
 
 // Input Helper Component
