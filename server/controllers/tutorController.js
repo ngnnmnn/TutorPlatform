@@ -10,7 +10,8 @@ const TeachSubject = require('../models/TeachSubject');
 // @access  Public
 const getTutors = async (req, res) => {
     try {
-        const { keyword, subject } = req.query;
+        const { keyword, subject, minRating, minBookingCount, page = 1, limit = 10 } = req.query;
+        const skip = (page - 1) * limit;
 
         // 1. Find all approved tutor accounts
         let accountQuery = { isApproved: true };
@@ -62,7 +63,7 @@ const getTutors = async (req, res) => {
                 hourlyRate: displayPrice,
                 bookingCount: bookingCount,
                 displayPrice: displayPrice,
-                rating: account.rating || 5.0,
+                rating: account.rating || 0,
                 numReviews: account.numReviews || 0,
                 requestNote: request.Note
             };
@@ -129,7 +130,24 @@ const getTutors = async (req, res) => {
             }
         }
 
-        res.json(tutors);
+        // 5. Apply Rating and Booking Count Filters
+        if (minRating) {
+            tutors = tutors.filter(t => t.rating >= Number(minRating));
+        }
+        if (minBookingCount) {
+            tutors = tutors.filter(t => t.bookingCount >= Number(minBookingCount));
+        }
+
+        // 6. Pagination
+        const total = tutors.length;
+        const paginatedTutors = tutors.slice(skip, skip + Number(limit));
+
+        res.json({
+            tutors: paginatedTutors,
+            total,
+            page: Number(page),
+            pages: Math.ceil(total / limit)
+        });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server Error' });
@@ -297,16 +315,7 @@ const updateTutorProfile = async (req, res) => {
 
         // Handle profile image upload
         if (req.files && req.files.img && req.files.img[0]) {
-            // Delete old image if exists
-            if (account.img && account.img.includes('/uploads/')) {
-                const oldFilename = account.img.split('/uploads/')[1];
-                const oldPath = path.join(process.cwd(), 'uploads', oldFilename);
-                deleteFile(oldPath);
-            }
-
-            const protocol = req.protocol;
-            const host = req.get('host');
-            account.img = `${protocol}://${host}/uploads/${req.files.img[0].filename}`;
+            account.img = req.files.img[0].path; // Cloudinary URL
         }
 
         // Handle existing evidence images
@@ -316,17 +325,6 @@ const updateTutorProfile = async (req, res) => {
                     ? JSON.parse(req.body.existingEvidenceImages)
                     : req.body.existingEvidenceImages;
 
-                // Find and delete removed images
-                if (account.evidenceImages && account.evidenceImages.length > 0) {
-                    account.evidenceImages.forEach(oldImg => {
-                        if (!existingImages.includes(oldImg) && oldImg.includes('/uploads/evidence/')) {
-                            const filename = oldImg.split('/uploads/evidence/')[1];
-                            const filePath = path.join(process.cwd(), 'uploads', 'evidence', filename);
-                            deleteFile(filePath);
-                        }
-                    });
-                }
-
                 account.evidenceImages = existingImages;
             } catch (e) {
                 console.error('Error parsing existingEvidenceImages:', e);
@@ -335,11 +333,7 @@ const updateTutorProfile = async (req, res) => {
 
         // Handle new evidence image uploads
         if (req.files && req.files.evidence && req.files.evidence.length > 0) {
-            const protocol = req.protocol;
-            const host = req.get('host');
-            const newEvidenceUrls = req.files.evidence.map(file =>
-                `${protocol}://${host}/uploads/evidence/${file.filename}`
-            );
+            const newEvidenceUrls = req.files.evidence.map(file => file.path); // Cloudinary URLs
             account.evidenceImages = [...(account.evidenceImages || []), ...newEvidenceUrls];
         }
 

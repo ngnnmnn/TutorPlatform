@@ -13,7 +13,20 @@ const postSchema = mongoose.Schema({
     image: {
         type: String
     },
+    video: {
+        type: String
+    },
+    link: {
+        type: String
+    },
+    tags: [{
+        type: String
+    }],
     likes: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Account'
+    }],
+    bookmarks: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Account'
     }],
@@ -23,6 +36,23 @@ const postSchema = mongoose.Schema({
             ref: 'Account'
         },
         text: String,
+        image: String,
+        video: String,
+        link: String,
+        replies: [{
+            user: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'Account'
+            },
+            text: String,
+            image: String,
+            video: String,
+            link: String,
+            createdAt: {
+                type: Date,
+                default: Date.now
+            }
+        }],
         createdAt: {
             type: Date,
             default: Date.now

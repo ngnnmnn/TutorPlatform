@@ -94,8 +94,8 @@ const importData = async () => {
                 graduationYear: 2022
             },
             hourlyRate: 150000,
-            rating: 4.8,
-            numReviews: 12,
+            rating: 0,
+            numReviews: 0,
             isApproved: true
         });
 
@@ -120,8 +120,8 @@ const importData = async () => {
                 graduationYear: 2020
             },
             hourlyRate: 200000,
-            rating: 5.0,
-            numReviews: 5,
+            rating: 0,
+            numReviews: 0,
             isApproved: true
         });
 

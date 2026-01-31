@@ -110,6 +110,8 @@ const createBooking = async (req, res) => {
 // @access  Private
 const getMyBookings = async (req, res) => {
     try {
+        const { page = 1, limit = 10 } = req.query;
+        const skip = (page - 1) * limit;
         const userId = req.user.id;
         const user = await Account.findById(userId);
 
@@ -137,7 +139,27 @@ const getMyBookings = async (req, res) => {
             })
             .sort({ date: 1, startTime: 1 });
 
-        res.json(bookings);
+        const total = await Booking.countDocuments(query);
+        const paginatedBookings = await Booking.find(query)
+            .populate('tutor', 'full_name email img subjects hourlyRate')
+            .populate('student', 'full_name email img phone')
+            .populate({
+                path: 'orderId',
+                populate: {
+                    path: 'comboID',
+                    select: 'price combo_name'
+                }
+            })
+            .sort({ date: 1, startTime: 1 })
+            .skip(skip)
+            .limit(Number(limit));
+
+        res.json({
+            bookings: paginatedBookings,
+            total,
+            page: Number(page),
+            pages: Math.ceil(total / limit)
+        });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server Error' });
@@ -149,7 +171,8 @@ const getMyBookings = async (req, res) => {
 // @access  Private (Admin)
 const getAllBookings = async (req, res) => {
     try {
-        const { status } = req.query;
+        const { status, page = 1, limit = 10 } = req.query;
+        const skip = (page - 1) * limit;
         let query = {};
 
         if (status) {
@@ -168,7 +191,27 @@ const getAllBookings = async (req, res) => {
             })
             .sort({ createdAt: -1 });
 
-        res.json(bookings);
+        const total = await Booking.countDocuments(query);
+        const paginatedBookings = await Booking.find(query)
+            .populate('tutor', 'full_name email img')
+            .populate('student', 'full_name email img phone')
+            .populate({
+                path: 'orderId',
+                populate: {
+                    path: 'comboID',
+                    select: 'price combo_name'
+                }
+            })
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(Number(limit));
+
+        res.json({
+            bookings: paginatedBookings,
+            total,
+            page: Number(page),
+            pages: Math.ceil(total / limit)
+        });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server Error' });

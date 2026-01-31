@@ -74,6 +74,21 @@ const accountSchema = new mongoose.Schema({
         chemistry: Number,
         physics: Number,
         english: Number
+    },
+    searchHistory: [{
+        type: String
+    }],
+    savedPosts: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Post'
+    }],
+    rating: {
+        type: Number,
+        default: 0
+    },
+    numReviews: {
+        type: Number,
+        default: 0
     }
 });
 

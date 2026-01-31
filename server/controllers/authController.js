@@ -72,22 +72,18 @@ const registerUser = async (req, res) => {
             const recaptchaRes = await axios.post(verifyUrl);
             if (!recaptchaRes.data.success) {
                 console.log(`Registration failed: Recaptcha verification failed`, recaptchaRes.data);
-                if (req.file) deleteFile(req.file.path);
                 return res.status(400).json({ message: 'Captcha không hợp lệ, vui lòng thử lại' });
             }
         }
     } catch (err) {
         console.error("Recaptcha Error:", err);
-        if (req.file) deleteFile(req.file.path);
         return res.status(500).json({ message: 'Lỗi xác thực Captcha' });
     }
 
     // Handle Image Upload
     let imgPath = '';
     if (req.file) {
-        const protocol = req.protocol;
-        const host = req.get('host');
-        imgPath = `${protocol}://${host}/uploads/${req.file.filename}`;
+        imgPath = req.file.path; // Cloudinary URL
     } else if (req.body.img) {
         imgPath = req.body.img;
     }
@@ -97,21 +93,18 @@ const registerUser = async (req, res) => {
         const emailExists = await Account.findOne({ email });
         if (emailExists) {
             console.log(`Registration failed: Email already exists - ${email}`);
-            if (req.file) deleteFile(req.file.path);
             return res.status(400).json({ message: 'Email đã tồn tại' });
         }
 
         const usernameExists = await Account.findOne({ username });
         if (usernameExists) {
             console.log(`Registration failed: Username already exists - ${username}`);
-            if (req.file) deleteFile(req.file.path);
             return res.status(400).json({ message: 'Tên đăng nhập đã tồn tại' });
         }
 
         if (phone) {
             const phoneExists = await Account.findOne({ phone });
             if (phoneExists) {
-                if (req.file) deleteFile(req.file.path);
                 return res.status(400).json({ message: 'Số điện thoại đã tồn tại' });
             }
         }
@@ -120,7 +113,6 @@ const registerUser = async (req, res) => {
         const validRoles = ['admin', 'tutor', 'student'];
         const accountRole = role || 'student';
         if (!validRoles.includes(accountRole)) {
-            if (req.file) deleteFile(req.file.path);
             return res.status(400).json({ message: 'Invalid role' });
         }
 
@@ -198,12 +190,10 @@ const registerUser = async (req, res) => {
                 });
             }
         } else {
-            if (req.file) deleteFile(req.file.path);
             res.status(400).json({ message: 'Invalid account data' });
         }
     } catch (error) {
         console.error(error);
-        if (req.file) deleteFile(req.file.path);
         res.status(500).json({ message: 'Server Error' });
     }
 };
@@ -297,16 +287,7 @@ const updateUserProfile = async (req, res) => {
 
             // Handle Image Upload (Profile Update)
             if (req.file) {
-                // Delete old image if it exists and is a local file
-                if (account.img && account.img.includes('/uploads/')) {
-                    const oldFilename = account.img.split('/uploads/')[1];
-                    const oldPath = path.join(process.cwd(), 'server', 'uploads', oldFilename);
-                    deleteFile(oldPath);
-                }
-
-                const protocol = req.protocol;
-                const host = req.get('host');
-                account.img = `${protocol}://${host}/uploads/${req.file.filename}`;
+                account.img = req.file.path; // Cloudinary URL
             }
 
             const updatedAccount = await account.save();
@@ -424,11 +405,8 @@ const createTutorRequest = async (req, res) => {
 
         // Handle Evidence Images
         if (req.files && req.files.evidence && req.files.evidence.length > 0) {
-            const protocol = req.protocol;
-            const host = req.get('host');
-
             for (const file of req.files.evidence) {
-                const imgPath = `${protocol}://${host}/uploads/evidence/${file.filename}`;
+                const imgPath = file.path; // Cloudinary URL
                 await Evidence.create({
                     tutorrequestID: tutorRequest._id,
                     img: imgPath,

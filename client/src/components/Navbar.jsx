@@ -81,7 +81,6 @@ const Navbar = () => {
                         <Link to="/tutors" className="text-gray-600 hover:text-primary transition-colors font-medium">Tìm Gia Sư</Link>
                         <Link to="/combos" className="text-gray-600 hover:text-primary transition-colors font-medium">Combo</Link>
                         <Link to="/feed" className="text-gray-600 hover:text-primary transition-colors font-medium">Bảng Tin</Link>
-                        <Link to="/resources" className="text-gray-600 hover:text-primary transition-colors font-medium">Tài Liệu</Link>
 
                         {user ? (
                             <div className="flex items-center gap-4">

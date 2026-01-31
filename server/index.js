@@ -32,6 +32,8 @@ app.use('/api/admin', require('./routes/adminRoutes'));
 app.use('/api/subjects', require('./routes/subjectRoutes'));
 app.use('/api/schedule', require('./routes/scheduleRoutes'));
 app.use('/api/orders', require('./routes/orderComboRoutes'));
+app.use('/api/upload', require('./routes/uploadRoutes'));
+app.use('/api/reviews', require('./routes/reviewRoutes'));
 
 app.get('/', (req, res) => {
     res.send('Tutor Platform API is running');

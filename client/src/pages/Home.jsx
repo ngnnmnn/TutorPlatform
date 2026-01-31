@@ -81,7 +81,7 @@ const Home = () => {
                                     <div className="pt-4 border-t border-gray-100 flex items-center justify-between">
                                         <div className="flex items-center gap-1 text-yellow-400 font-bold text-sm">
                                             <Star className="w-4 h-4 fill-current" />
-                                            {tutor.rating || 5.0} <span className="text-gray-400 font-normal">({tutor.numReviews || 0})</span>
+                                            {tutor.rating?.toFixed(1) || "0.0"} <span className="text-gray-400 font-normal">({tutor.numReviews || 0})</span>
                                         </div>
                                         <div className="text-right">
                                             <div className="text-primary font-bold">

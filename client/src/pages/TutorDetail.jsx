@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { Star, MapPin, Award, BookOpen, Clock, Calendar, Shield, CheckCircle, X, Video, MessageSquare, Loader } from 'lucide-react';
+import { Star, MapPin, Award, BookOpen, Clock, Calendar, Shield, CheckCircle, X, Video, MessageSquare, Loader, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 
@@ -36,6 +36,8 @@ const TutorDetail = () => {
     const [loadingSlots, setLoadingSlots] = useState(false);
     const [bookingLoading, setBookingLoading] = useState(false);
     const [bookingError, setBookingError] = useState('');
+    const [reviews, setReviews] = useState([]);
+    const [reviewsLoading, setReviewsLoading] = useState(false);
 
     useEffect(() => {
         const fetchTutor = async () => {
@@ -68,8 +70,21 @@ const TutorDetail = () => {
             }
         };
 
+        const fetchReviews = async () => {
+            setReviewsLoading(true);
+            try {
+                const res = await axios.get(`${API_URL}/api/reviews/tutor/${id}`);
+                setReviews(res.data);
+            } catch (error) {
+                console.error("Error fetching reviews:", error);
+            } finally {
+                setReviewsLoading(false);
+            }
+        };
+
         fetchTutor();
         fetchSchedule();
+        fetchReviews();
     }, [id]);
 
     // Modal: Reset when opens
@@ -303,7 +318,7 @@ const TutorDetail = () => {
                                     )}
                                     <div className="flex items-center justify-end gap-1 mt-1 text-yellow-500 font-bold">
                                         <Star className="w-5 h-5 fill-current" />
-                                        {tutor.rating || 5.0} <span className="text-gray-400 font-normal">({tutor.numReviews || 0} đánh giá)</span>
+                                        {tutor.rating?.toFixed(1) || "0.0"} <span className="text-gray-400 font-normal">({tutor.numReviews || 0} đánh giá)</span>
                                     </div>
                                 </div>
                             </div>
@@ -491,30 +506,72 @@ const TutorDetail = () => {
                             </section>
                         )}
 
-                        {/* Reviews Mock */}
+                        {/* Reviews */}
                         <section className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
                             <h2 className="text-xl font-bold text-dark mb-6 flex items-center gap-2">
                                 <Shield className="w-6 h-6 text-primary" />
-                                Đánh Giá Từ Học Viên
+                                Đánh Giá Từ Học Viên ({reviews.length})
                             </h2>
                             <div className="space-y-6">
-                                {[1, 2].map((i) => (
-                                    <div key={i} className="border-b border-gray-100 last:border-0 pb-6 last:pb-0">
-                                        <div className="flex items-center gap-3 mb-2">
-                                            <div className="w-10 h-10 rounded-full bg-gray-200"></div>
-                                            <div>
-                                                <p className="font-bold text-dark text-sm">Học viên ẩn danh</p>
-                                                <div className="flex text-yellow-400 text-xs">
-                                                    {[...Array(5)].map((_, i) => <Star key={i} className="w-3 h-3 fill-current" />)}
-                                                </div>
-                                            </div>
-                                            <span className="ml-auto text-xs text-gray-400">2 ngày trước</span>
-                                        </div>
-                                        <p className="text-gray-600 text-sm">
-                                            "Thầy dạy rất dễ hiểu, nhiệt tình. Nhờ thầy mà mình đã cải thiện điểm số đáng kể."
-                                        </p>
+                                {reviewsLoading ? (
+                                    <div className="flex justify-center p-8">
+                                        <Loader className="w-8 h-8 text-primary animate-spin" />
                                     </div>
-                                ))}
+                                ) : reviews.length === 0 ? (
+                                    <div className="text-center py-8 text-gray-500">
+                                        Chưa có đánh giá nào cho gia sư này.
+                                    </div>
+                                ) : (
+                                    reviews.map((review) => (
+                                        <div key={review._id} className="border-b border-gray-100 last:border-0 pb-6 last:pb-0">
+                                            <div className="flex items-center gap-3 mb-2">
+                                                <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center overflow-hidden">
+                                                    {review.student?.img ? (
+                                                        <img src={review.student.img} alt={review.student.full_name} className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <User className="w-5 h-5 text-indigo-300" />
+                                                    )}
+                                                </div>
+                                                <div>
+                                                    <p className="font-bold text-dark text-sm">{review.student?.full_name}</p>
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="flex text-yellow-400 text-xs">
+                                                            {[...Array(5)].map((_, i) => (
+                                                                <Star key={i} className={`w-3 h-3 ${i < Math.round(review.rating) ? 'fill-current' : 'text-gray-300'}`} />
+                                                            ))}
+                                                        </div>
+                                                        <span className="text-[10px] text-gray-400 font-medium bg-gray-50 px-1.5 py-0.5 rounded">
+                                                            {review.rating.toFixed(1)}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <span className="ml-auto text-xs text-gray-400">
+                                                    {new Date(review.createdAt).toLocaleDateString('vi-VN')}
+                                                </span>
+                                            </div>
+                                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3 bg-gray-50 p-2 rounded-lg">
+                                                {[
+                                                    { label: 'Kiến thức', val: review.knowledge },
+                                                    { label: 'Kỹ năng', val: review.teachingSkill },
+                                                    { label: 'Thái độ', val: review.attitude },
+                                                    { label: 'Đúng giờ', val: review.punctuality },
+                                                ].map((stat, idx) => (
+                                                    <div key={idx} className="flex flex-col items-center">
+                                                        <span className="text-[10px] text-gray-500">{stat.label}</span>
+                                                        <div className="flex text-yellow-400">
+                                                            {[...Array(5)].map((_, i) => (
+                                                                <Star key={i} className={`w-2 h-2 ${i < stat.val ? 'fill-current' : 'text-gray-200'}`} />
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                            <p className="text-gray-600 text-sm italic">
+                                                "{review.comment}"
+                                            </p>
+                                        </div>
+                                    ))
+                                )}
                             </div>
                         </section>
                     </div>

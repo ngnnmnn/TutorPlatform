@@ -6,9 +6,12 @@ import Footer from '../components/Footer';
 import {
     Calendar, Clock, User, BookOpen, Video, MapPin,
     Check, X, AlertCircle, Loader, MessageSquare, Link as LinkIcon,
-    Filter, ChevronDown, CheckCircle
+    Filter, ChevronDown, CheckCircle, Star
 } from 'lucide-react';
 import { API_URL } from '../config';
+import FeedbackForm from '../components/FeedbackForm';
+import Pagination from '../components/Pagination';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const statusConfig = {
     pending: { label: 'Chờ Admin duyệt', color: 'bg-yellow-100 text-yellow-700', icon: AlertCircle },
@@ -25,6 +28,9 @@ const MyBookings = () => {
     const [loading, setLoading] = useState(true);
     const [filterStatus, setFilterStatus] = useState('all');
     const [actionLoading, setActionLoading] = useState(null);
+    const [feedbackModal, setFeedbackModal] = useState(null); // stores booking object
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
 
     const userData = JSON.parse(localStorage.getItem('user') || '{}');
     const isTutor = userData.role === 'tutor';
@@ -38,13 +44,17 @@ const MyBookings = () => {
         fetchBookings();
     }, []);
 
-    const fetchBookings = async () => {
+    const fetchBookings = async (pageNumber = 1) => {
         setLoading(true);
         try {
             const token = localStorage.getItem('token');
-            const config = { headers: { Authorization: `Bearer ${token}` } };
-            const res = await axios.get(`${API_URL}/api/bookings/my`, config);
-            setBookings(res.data);
+            const res = await axios.get(`${API_URL}/api/bookings/my`, {
+                headers: { Authorization: `Bearer ${token}` },
+                params: { page: pageNumber, limit: 10 }
+            });
+            setBookings(res.data.bookings);
+            setTotalPages(res.data.pages);
+            setPage(res.data.page);
         } catch (error) {
             console.error('Error fetching bookings:', error);
         } finally {
@@ -344,6 +354,17 @@ const MyBookings = () => {
                                                         Hoàn thành
                                                     </button>
                                                 )}
+
+                                                {/* Student Actions - Feedback */}
+                                                {!isTutor && booking.status === 'completed' && (
+                                                    <button
+                                                        onClick={() => setFeedbackModal(booking)}
+                                                        className="px-4 py-2 bg-yellow-500 text-white text-sm font-medium rounded-lg hover:bg-yellow-600 transition-colors flex items-center gap-2"
+                                                    >
+                                                        <Star className="w-4 h-4 fill-current" />
+                                                        Đánh giá
+                                                    </button>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
@@ -355,7 +376,19 @@ const MyBookings = () => {
                 }
             </div>
 
-            {/* Modal removed */}
+            {/* Feedback Modal */}
+            <AnimatePresence>
+                {feedbackModal && (
+                    <FeedbackForm
+                        booking={feedbackModal}
+                        onClose={() => setFeedbackModal(null)}
+                        onSuccess={() => {
+                            alert('Cảm ơn bạn đã đánh giá!');
+                            fetchBookings();
+                        }}
+                    />
+                )}
+            </AnimatePresence>
 
             <Footer />
         </div>

@@ -5,6 +5,7 @@ import Footer from '../components/Footer';
 import { Search, Filter, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { API_URL } from '../config';
+import Pagination from '../components/Pagination';
 
 const Tutors = () => {
     const [tutors, setTutors] = useState([]);
@@ -15,18 +16,26 @@ const Tutors = () => {
     const [subject, setSubject] = useState('');
     const [minPrice, setMinPrice] = useState('');
     const [maxPrice, setMaxPrice] = useState('');
+    const [minRating, setMinRating] = useState('');
+    const [minBookingCount, setMinBookingCount] = useState('');
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [totalResults, setTotalResults] = useState(0);
 
-    const fetchTutors = async () => {
+    const fetchTutors = async (pageNumber = 1) => {
         setLoading(true);
         try {
-            const params = {};
+            const params = { page: pageNumber, limit: 6 };
             if (search) params.keyword = search;
             if (subject) params.subject = subject;
-            if (minPrice) params.minPrice = minPrice;
-            if (maxPrice) params.maxPrice = maxPrice;
+            if (minRating) params.minRating = minRating;
+            if (minBookingCount) params.minBookingCount = minBookingCount;
 
             const res = await axios.get(`${API_URL}/api/tutors`, { params });
-            setTutors(res.data);
+            setTutors(res.data.tutors);
+            setTotalResults(res.data.total);
+            setTotalPages(res.data.pages);
+            setPage(res.data.page);
         } catch (error) {
             console.error(error);
         } finally {
@@ -40,7 +49,12 @@ const Tutors = () => {
 
     const handleSearch = (e) => {
         e.preventDefault();
-        fetchTutors();
+        fetchTutors(1);
+    };
+
+    const handlePageChange = (newPage) => {
+        fetchTutors(newPage);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     return (
@@ -74,6 +88,36 @@ const Tutors = () => {
                                 </select>
                             </div>
 
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Đánh giá tối thiểu</label>
+                                <div className="flex gap-2">
+                                    {[1, 2, 3, 4, 5].map((star) => (
+                                        <button
+                                            key={star}
+                                            type="button"
+                                            onClick={() => setMinRating(minRating === star ? '' : star)}
+                                            className={`p-2 rounded-lg border transition-all ${minRating >= star
+                                                    ? 'bg-yellow-50 border-yellow-200 text-yellow-500'
+                                                    : 'bg-gray-50 border-gray-100 text-gray-300'
+                                                }`}
+                                        >
+                                            <Star className={`w-4 h-4 ${minRating >= star ? 'fill-current' : ''}`} />
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Số lượt booking từ</label>
+                                <input
+                                    type="number"
+                                    placeholder="Ví dụ: 10"
+                                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                                    value={minBookingCount}
+                                    onChange={(e) => setMinBookingCount(e.target.value)}
+                                />
+                            </div>
+
 
 
                             <button
@@ -91,7 +135,9 @@ const Tutors = () => {
                                     setSubject('');
                                     setMinPrice('');
                                     setMaxPrice('');
-                                    setTimeout(() => fetchTutors(), 0);
+                                    setMinRating('');
+                                    setMinBookingCount('');
+                                    setTimeout(() => fetchTutors(1), 0);
                                 }}
                                 className="w-full py-3 bg-white text-gray-500 font-medium rounded-xl border border-gray-200 hover:bg-gray-50 transition-all"
                             >
@@ -126,7 +172,7 @@ const Tutors = () => {
                         ) : (
                             <>
                                 <div className="mb-4 text-gray-500 text-sm">
-                                    Tìm thấy {tutors.length} gia sư
+                                    Tìm thấy {totalResults} gia sư
                                 </div>
                                 <div className="grid md:grid-cols-2 gap-6">
                                     {tutors.map((tutor) => (
@@ -145,7 +191,7 @@ const Tutors = () => {
                                                 </div>
                                                 <div className="flex items-center gap-1 bg-yellow-50 px-2 py-1 rounded-lg">
                                                     <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                                                    <span className="font-bold text-yellow-700 text-sm">{tutor.rating}</span>
+                                                    <span className="font-bold text-yellow-700 text-sm">{tutor.rating?.toFixed(1) || "0.0"}</span>
                                                 </div>
                                             </div>
 
@@ -195,6 +241,12 @@ const Tutors = () => {
                                         </div>
                                     )}
                                 </div>
+
+                                <Pagination
+                                    currentPage={page}
+                                    totalPages={totalPages}
+                                    onPageChange={handlePageChange}
+                                />
                             </>
                         )}
                     </div>
