@@ -97,8 +97,8 @@ const Tutors = () => {
                                             type="button"
                                             onClick={() => setMinRating(minRating === star ? '' : star)}
                                             className={`p-2 rounded-lg border transition-all ${minRating >= star
-                                                    ? 'bg-yellow-50 border-yellow-200 text-yellow-500'
-                                                    : 'bg-gray-50 border-gray-100 text-gray-300'
+                                                ? 'bg-yellow-50 border-yellow-200 text-yellow-500'
+                                                : 'bg-gray-50 border-gray-100 text-gray-300'
                                                 }`}
                                         >
                                             <Star className={`w-4 h-4 ${minRating >= star ? 'fill-current' : ''}`} />
@@ -208,7 +208,7 @@ const Tutors = () => {
                                             <div className="flex items-center justify-between pt-4 border-t border-gray-50">
                                                 <div className="text-left">
                                                     <div className="text-primary font-bold text-lg">
-                                                        {tutor.displayPrice?.toLocaleString('vi-VN') || tutor.hourlyRate?.toLocaleString('vi-VN')} VNĐ/buổi
+                                                        200.000 - 280.000 VNĐ/buổi
                                                     </div>
                                                     {tutor.bookingCount !== undefined && (
                                                         <div className="text-[10px] text-gray-400">

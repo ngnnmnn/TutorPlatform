@@ -20,6 +20,11 @@ const bookingSchema = mongoose.Schema({
         type: String,
         required: true
     },
+    grade: {
+        type: String,
+        required: true,
+        enum: ['10', '11', '12']
+    },
     date: {
         type: Date,
         required: true

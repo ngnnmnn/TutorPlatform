@@ -29,7 +29,7 @@ const createOrder = async (req, res) => {
             accountId: userId,
             used_slot: 0,
             remaining_slot: combo.slot, // Helper logic: total slots
-            approvalStatus: combo.slot >= 5 ? 'pending' : 'approved',
+            approvalStatus: combo.slot > 2 ? 'pending' : 'approved',
             status: true // Active
         });
 
@@ -43,7 +43,7 @@ const createOrder = async (req, res) => {
                 sender: userId,
                 type: 'order_created',
                 title: 'Đơn hàng Combo mới',
-                message: `Người dùng đã đặt mua combo ${combo.combo_name}. ${combo.slot >= 5 ? 'Vui lòng duyệt.' : 'Đã tự động duyệt.'}`,
+                message: `Người dùng đã đặt mua combo ${combo.combo_name}. ${combo.slot > 2 ? 'Vui lòng duyệt.' : 'Đã tự động duyệt.'}`,
                 link: '/admin'
             }).save();
         }
@@ -74,7 +74,11 @@ const getAllOrders = async (req, res) => {
             .populate('accountId', 'full_name email')
             .populate('comboID')
             .sort({ createAt: -1 });
-        res.json(orders);
+
+        // Only return orders where the combo has more than 2 slots
+        const filteredOrders = orders.filter(order => order.comboID && order.comboID.slot > 2);
+
+        res.json(filteredOrders);
     } catch (error) {
         console.error("Error fetching orders:", error);
         res.status(500).json({ message: 'Server Error' });

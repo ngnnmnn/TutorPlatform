@@ -28,6 +28,7 @@ const TutorDetail = () => {
         date: '',
         slotId: '',
         subject: '',
+        grade: '', // New field
         learningMode: 'online',
         location: '',
         note: ''
@@ -95,6 +96,7 @@ const TutorDetail = () => {
                 date: '',
                 slotId: '',
                 subject: '',
+                grade: '', // New field
                 learningMode: 'online',
                 location: '',
                 note: ''
@@ -188,8 +190,8 @@ const TutorDetail = () => {
     const handleBookingSubmit = async (e) => {
         e.preventDefault();
 
-        if (!formData.date || !formData.slotId || !formData.subject) {
-            setBookingError('Vui lòng điền đầy đủ thông tin');
+        if (!formData.date || !formData.slotId || !formData.subject || !formData.grade) {
+            setBookingError('Vui lòng điền đầy đủ thông tin (bao gồm lớp học)');
             return;
         }
 
@@ -220,6 +222,7 @@ const TutorDetail = () => {
             const res = await axios.post(`${API_URL}/api/bookings`, {
                 tutorId: tutor._id,
                 subject: formData.subject,
+                grade: formData.grade,
                 date: formData.date,
                 startTime: selectedSlot.timeSchId.from,
                 endTime: selectedSlot.timeSchId.to,
@@ -309,7 +312,7 @@ const TutorDetail = () => {
                                 </div>
                                 <div className="text-right">
                                     <p className="text-3xl font-bold text-primary">
-                                        {hourlyRate.toLocaleString('vi-VN')} <span className="text-base font-normal text-gray-500">VNĐ/buổi</span>
+                                        200.000 - 280.000 <span className="text-base font-normal text-gray-500">VNĐ/buổi</span>
                                     </p>
                                     {tutor.bookingCount !== undefined && (
                                         <p className="text-sm text-gray-400 mt-1">
@@ -672,6 +675,31 @@ const TutorDetail = () => {
                                             </div>
                                         </div>
 
+                                        {/* Grade Selection */}
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                Bạn muốn tìm slot học cho học sinh nào? <span className="text-red-500">*</span>
+                                            </label>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setFormData({ ...formData, grade: '10' })}
+                                                    className={`py-3 px-4 rounded-xl border-2 transition-all flex flex-col items-center justify-center gap-1 ${formData.grade === '10' ? 'border-primary bg-primary/5 text-primary' : 'border-gray-100 bg-gray-50 text-gray-500'}`}
+                                                >
+                                                    <span className="font-bold">Lớp 10 & 11</span>
+                                                    <span className="text-xs">200.000đ/buổi</span>
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setFormData({ ...formData, grade: '12' })}
+                                                    className={`py-3 px-4 rounded-xl border-2 transition-all flex flex-col items-center justify-center gap-1 ${formData.grade === '12' ? 'border-primary bg-primary/5 text-primary' : 'border-gray-100 bg-gray-50 text-gray-500'}`}
+                                                >
+                                                    <span className="font-bold">Lớp 12</span>
+                                                    <span className="text-xs">280.000đ/buổi</span>
+                                                </button>
+                                            </div>
+                                        </div>
+
                                         {/* Date */}
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -741,7 +769,7 @@ const TutorDetail = () => {
                                                     <p>Học phí mỗi buổi:</p>
                                                 </div>
                                                 <p className="font-bold text-primary text-2xl">
-                                                    {hourlyRate.toLocaleString('vi-VN')} đ
+                                                    {formData.grade === '12' ? (280000).toLocaleString('vi-VN') : (formData.grade ? (200000).toLocaleString('vi-VN') : '0')} đ
                                                 </p>
                                             </div>
                                             <button
