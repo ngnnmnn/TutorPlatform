@@ -16,7 +16,17 @@ const Home = () => {
             try {
                 // Fetch top 3 tutors for the featured section
                 const res = await axios.get(`${API_URL}/api/tutors?limit=3`);
-                setTutors(res.data.slice(0, 3));
+
+                let tutorsData = [];
+                if (Array.isArray(res.data)) {
+                    tutorsData = res.data;
+                } else if (res.data?.data && Array.isArray(res.data.data)) {
+                    tutorsData = res.data.data;
+                } else if (res.data?.tutors && Array.isArray(res.data.tutors)) {
+                    tutorsData = res.data.tutors;
+                }
+
+                setTutors(tutorsData.slice(0, 3));
                 setLoading(false);
             } catch (error) {
                 console.error("Error fetching tutors:", error);
