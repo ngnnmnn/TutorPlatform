@@ -75,24 +75,28 @@ const Hero = () => {
                                 </div>
                             </motion.div>
 
-                            {/* Floating Card 2 */}
+                            {/* Floating Card 2 - Student Review */}
                             <motion.div
                                 animate={{ y: [0, 10, 0] }}
                                 transition={{ duration: 5, repeat: Infinity }}
-                                className="absolute top-10 -right-10 bg-white p-4 rounded-xl shadow-xl max-w-xs"
+                                className="absolute top-10 -right-10 bg-white p-4 rounded-xl shadow-xl max-w-[220px]"
                             >
-                                <div className="flex items-center gap-3 mb-2">
-                                    <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" className="w-10 h-10 rounded-full" alt="Tutor" />
-                                    <div>
-                                        <p className="font-bold text-sm">Cô Mai</p>
-                                        <p className="text-xs text-secondary font-medium">Gia sư Toán</p>
-                                    </div>
+                                <div className="flex gap-0.5 mb-2">
+                                    {[1, 2, 3, 4, 5].map(i => (
+                                        <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
+                                    ))}
                                 </div>
-                                <div className="space-y-1">
-                                    <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
-                                        <div className="h-full bg-secondary w-3/4"></div>
+                                <p className="text-sm text-gray-700 leading-snug italic mb-3">
+                                    "Nhờ có gia sư trên TutorHub, em đã cải thiện điểm Toán từ 5 lên 8.5!"
+                                </p>
+                                <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
+                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white text-xs font-bold">
+                                        M
                                     </div>
-                                    <p className="text-xs text-gray-500 text-right">Bài học hoàn thành!</p>
+                                    <div>
+                                        <p className="font-bold text-xs text-dark">Minh Anh</p>
+                                        <p className="text-[10px] text-gray-400">Học sinh lớp 11</p>
+                                    </div>
                                 </div>
                             </motion.div>
                         </div>
