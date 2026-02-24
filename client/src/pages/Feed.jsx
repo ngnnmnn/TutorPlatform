@@ -1,9 +1,38 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import axios from 'axios';
 import Navbar from '../components/Navbar';
 import { Heart, MessageCircle, Share2, Send, Image as ImageIcon, Video, Link as LinkIcon, Bookmark, Search, X } from 'lucide-react';
 import { API_URL } from '../config';
 import Pagination from '../components/Pagination';
+import ReactQuill from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css';
+import DOMPurify from 'dompurify';
+
+const quillModules = {
+    toolbar: [
+        [{ 'header': [1, 2, 3, false] }],
+        ['bold', 'italic', 'underline', 'strike'],
+        [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+        ['blockquote', 'code-block'],
+        ['link'],
+        ['clean']
+    ]
+};
+
+const quillFormats = [
+    'header', 'bold', 'italic', 'underline', 'strike',
+    'list', 'blockquote', 'code-block', 'link'
+];
+
+// Sanitize content: replace &nbsp; with regular spaces, clean Google Docs artifacts
+const sanitizeContent = (html) => {
+    if (!html) return '';
+    return html
+        .replace(/&nbsp;/g, ' ')
+        .replace(/\u00A0/g, ' ')
+        .replace(/<span style="[^"]*">/g, '<span>')
+        .replace(/<span>([^<]*)<\/span>/g, '$1');
+};
 
 const Feed = () => {
     const [posts, setPosts] = useState([]);
@@ -123,12 +152,13 @@ const Feed = () => {
 
     const handleCreatePost = async (e) => {
         e.preventDefault();
-        if (!newPostContent.trim() && !media && !link) return;
+        const isContentEmpty = !newPostContent || newPostContent.replace(/<[^>]*>/g, '').trim().length === 0;
+        if (isContentEmpty && !media && !link) return;
 
         try {
             const token = localStorage.getItem('token');
             const formData = new FormData();
-            formData.append('content', newPostContent);
+            formData.append('content', sanitizeContent(newPostContent));
             if (media) formData.append('image', media); // Backend handles image/video based on mimetype
             if (link) formData.append('link', link);
 
@@ -266,7 +296,7 @@ const Feed = () => {
                         <img src={post.image} className="max-w-full max-h-full object-contain" alt="Full view" />
                     ) : (
                         <div className="text-white text-center p-8 bg-gray-900 rounded-xl">
-                            <p className="whitespace-pre-wrap">{post.content}</p>
+                            <div className="ql-editor-content" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(sanitizeContent(post.content)) }} />
                         </div>
                     )}
                 </div>
@@ -284,7 +314,7 @@ const Feed = () => {
                                 <p className="text-[10px] text-gray-500">{new Date(post.createdAt).toLocaleString('vi-VN')}</p>
                             </div>
                         </div>
-                        <p className="mt-4 text-sm text-gray-700 whitespace-pre-wrap max-h-32 overflow-y-auto">{post.content}</p>
+                        <div className="mt-4 text-sm text-gray-700 max-h-32 overflow-y-auto ql-editor-content" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(sanitizeContent(post.content)) }} />
                     </div>
 
                     {/* Interaction Bar */}
@@ -507,13 +537,15 @@ const Feed = () => {
                             </div>
                             <div className="flex-1">
                                 <form onSubmit={handleCreatePost}>
-                                    <textarea
-                                        className="w-full bg-gray-50 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none transition-all"
-                                        rows="3"
-                                        placeholder={`Hôm nay bạn thấy thế nào, ${user.full_name.split(' ').pop()}?`}
+                                    <ReactQuill
+                                        theme="snow"
                                         value={newPostContent}
-                                        onChange={(e) => setNewPostContent(e.target.value)}
-                                    ></textarea>
+                                        onChange={setNewPostContent}
+                                        modules={quillModules}
+                                        formats={quillFormats}
+                                        placeholder={`Hôm nay bạn thấy thế nào, ${user.full_name.split(' ').pop()}?`}
+                                        className="feed-quill-editor"
+                                    />
 
                                     {mediaPreview && (
                                         <div className="mt-3 relative inline-block">
@@ -560,7 +592,7 @@ const Feed = () => {
                                         <button
                                             type="submit"
                                             className="bg-primary text-white px-5 py-2 rounded-full text-sm font-bold shadow-md hover:shadow-lg hover:bg-primary/90 transition-all active:scale-95 disabled:opacity-50"
-                                            disabled={!newPostContent.trim() && !media && !link}
+                                            disabled={(!newPostContent || newPostContent.replace(/<[^>]*>/g, '').trim().length === 0) && !media && !link}
                                         >
                                             Đăng
                                         </button>
@@ -597,9 +629,10 @@ const Feed = () => {
                                         </button>
                                     </div>
 
-                                    <p className="text-gray-800 text-sm mb-4 leading-relaxed whitespace-pre-wrap">
-                                        {post.content}
-                                    </p>
+                                    <div
+                                        className="text-gray-800 text-sm mb-4 leading-relaxed ql-editor-content"
+                                        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(sanitizeContent(post.content)) }}
+                                    />
 
                                     {post.link && (
                                         <a href={post.link} target="_blank" rel="noopener noreferrer" className="mb-4 flex items-center gap-3 p-3 bg-blue-50/50 rounded-xl border border-blue-100 hover:bg-blue-100 transition-colors group">
