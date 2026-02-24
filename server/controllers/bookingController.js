@@ -8,7 +8,7 @@ const { createNotification } = require('./notificationController');
 // @route   POST /api/bookings
 // @access  Private (Student)
 const createBooking = async (req, res) => {
-    const { tutorId, subject, date, startTime, endTime, learningMode, location, note } = req.body;
+    const { tutorId, subject, grade, date, startTime, endTime, learningMode, location, note } = req.body;
 
     try {
         // Check if tutor exists (and is actually a tutor/approved)
@@ -63,6 +63,7 @@ const createBooking = async (req, res) => {
             tutor: tutorId,
             orderId: order._id, // Link to the new Order
             subject,
+            grade,
             date,
             startTime,
             endTime,
