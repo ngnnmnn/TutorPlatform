@@ -103,7 +103,7 @@ const AdminDashboard = () => {
         try {
             setLoading(true);
             const res = await axios.get(`${API_URL}/api/bookings/all`, getConfig());
-            setBookings(res.data);
+            setBookings(res.data.bookings || []);
         } catch (error) {
             console.error('Error fetching bookings:', error);
         } finally {
