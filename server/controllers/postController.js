@@ -1,6 +1,7 @@
 const Post = require('../models/Post');
 const Account = require('../models/Account');
 const Notification = require('../models/Notification');
+const { fetchLinkPreview } = require('../utils/fetchLinkPreview');
 
 // @desc    Get all posts
 // @route   GET /api/posts
@@ -60,12 +61,19 @@ const createPost = async (req, res) => {
 
         const tagList = tags ? (typeof tags === 'string' ? JSON.parse(tags) : tags) : [];
 
+        // Fetch link preview metadata if link is provided
+        let linkPreview = undefined;
+        if (link) {
+            linkPreview = await fetchLinkPreview(link);
+        }
+
         const post = await Post.create({
             author: req.user.id,
             content,
             image,
             video,
             link,
+            linkPreview,
             tags: tagList
         });
 

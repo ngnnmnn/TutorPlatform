@@ -3,6 +3,7 @@ import axios from 'axios';
 import Navbar from '../components/Navbar';
 import { Heart, MessageCircle, Share2, Send, Image as ImageIcon, Video, Link as LinkIcon, Bookmark, Search, X } from 'lucide-react';
 import { API_URL } from '../config';
+import LinkPreviewCard from '../components/LinkPreviewCard';
 import Pagination from '../components/Pagination';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
@@ -33,6 +34,28 @@ const sanitizeContent = (html) => {
         .replace(/<span style="[^"]*">/g, '<span>')
         .replace(/<span>([^<]*)<\/span>/g, '$1');
 };
+
+// Auto-linkify plain URLs in HTML content (skip URLs already inside <a> tags)
+const linkifyHtml = (html) => {
+    if (!html) return '';
+    // Split by existing anchor tags to avoid double-wrapping
+    const parts = html.split(/(<a[^>]*>.*?<\/a>)/gi);
+    return parts.map(part => {
+        if (part.match(/^<a[^>]*>/i)) return part; // already a link
+        return part.replace(
+            /(https?:\/\/[^\s<>"']+)/g,
+            '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline break-all">$1</a>'
+        );
+    }).join('');
+};
+
+// Configure DOMPurify to keep target and rel on links
+DOMPurify.addHook('afterSanitizeAttributes', (node) => {
+    if (node.tagName === 'A') {
+        node.setAttribute('target', '_blank');
+        node.setAttribute('rel', 'noopener noreferrer');
+    }
+});
 
 const Feed = () => {
     const [posts, setPosts] = useState([]);
@@ -296,7 +319,7 @@ const Feed = () => {
                         <img src={post.image} className="max-w-full max-h-full object-contain" alt="Full view" />
                     ) : (
                         <div className="text-white text-center p-8 bg-gray-900 rounded-xl">
-                            <div className="ql-editor-content" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(sanitizeContent(post.content)) }} />
+                            <div className="ql-editor-content" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(linkifyHtml(sanitizeContent(post.content))) }} />
                         </div>
                     )}
                 </div>
@@ -314,7 +337,7 @@ const Feed = () => {
                                 <p className="text-[10px] text-gray-500">{new Date(post.createdAt).toLocaleString('vi-VN')}</p>
                             </div>
                         </div>
-                        <div className="mt-4 text-sm text-gray-700 max-h-32 overflow-y-auto ql-editor-content" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(sanitizeContent(post.content)) }} />
+                        <div className="mt-4 text-sm text-gray-700 max-h-32 overflow-y-auto ql-editor-content" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(linkifyHtml(sanitizeContent(post.content))) }} />
                     </div>
 
                     {/* Interaction Bar */}
@@ -631,16 +654,11 @@ const Feed = () => {
 
                                     <div
                                         className="text-gray-800 text-sm mb-4 leading-relaxed ql-editor-content"
-                                        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(sanitizeContent(post.content)) }}
+                                        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(linkifyHtml(sanitizeContent(post.content))) }}
                                     />
 
                                     {post.link && (
-                                        <a href={post.link} target="_blank" rel="noopener noreferrer" className="mb-4 flex items-center gap-3 p-3 bg-blue-50/50 rounded-xl border border-blue-100 hover:bg-blue-100 transition-colors group">
-                                            <div className="p-2 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
-                                                <LinkIcon className="w-4 h-4 text-blue-600" />
-                                            </div>
-                                            <span className="text-blue-700 text-xs font-semibold truncate flex-1">{post.link}</span>
-                                        </a>
+                                        <LinkPreviewCard linkPreview={post.linkPreview} fallbackUrl={post.link} />
                                     )}
                                 </div>
 

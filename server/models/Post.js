@@ -19,6 +19,13 @@ const postSchema = mongoose.Schema({
     link: {
         type: String
     },
+    linkPreview: {
+        url: String,
+        title: String,
+        description: String,
+        image: String,
+        siteName: String
+    },
     tags: [{
         type: String
     }],
