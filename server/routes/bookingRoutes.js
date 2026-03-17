@@ -9,7 +9,9 @@ const {
     cancelBooking,
     getSchedule,
     getBookingById,
-    completeBooking
+    completeBooking,
+    adminApproveCancellation,
+    updateHomework
 } = require('../controllers/bookingController');
 const { protect } = require('../middleware/authMiddleware');
 

@@ -1,9 +1,28 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, Star, Shield, Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Hero = () => {
+    const images = [
+        "https://res.cloudinary.com/dwd8plkcl/image/upload/v1773770614/z7630003164406_4a99799af505c52ada91408cb13eaeb2_zyzcpt.jpg",
+        "https://res.cloudinary.com/dwd8plkcl/image/upload/v1773770614/z7630003186751_8cad47ec378a6034e685f3039a0cafc3_fogyzj.jpg",
+        "https://res.cloudinary.com/dwd8plkcl/image/upload/v1773770614/z7630003177853_31b8662767428759e053f41ab6fbccfa_vhcjig.jpg",
+        "https://res.cloudinary.com/dwd8plkcl/image/upload/v1773770613/z7630003176143_20f3dfacfc3b41efa81d730d171639fc_ow976q.jpg",
+        "https://res.cloudinary.com/dwd8plkcl/image/upload/v1773770614/z7630003165365_09808eb992149a25c32dca075af04222_qaxhs8.jpg",
+        "https://res.cloudinary.com/dwd8plkcl/image/upload/v1773770614/z7630003187222_a6934bb30de8fbbdd7941bd46cd3d131_mlwlhx.jpg"
+    ];
+
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setCurrentImageIndex((prevIndex) => (prevIndex + 1) % images.length);
+        }, 3000); // Change image every 3 seconds
+
+        return () => clearInterval(interval);
+    }, [images.length]);
+
     return (
         <section className="relative pt-32 pb-20 lg:pt-40 lg:pb-28 overflow-hidden bg-gradient-to-br from-indigo-50 via-white to-purple-50">
             {/* Background decorations */}
@@ -53,52 +72,19 @@ const Hero = () => {
                         transition={{ duration: 0.6, delay: 0.2 }}
                         className="relative"
                     >
-                        <div className="relative z-10 bg-white rounded-3xl shadow-2xl p-4 rotate-2 hover:rotate-0 transition-transform duration-500">
-                            <img
-                                src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80"
-                                alt="Student learning"
-                                className="rounded-2xl w-full h-[500px] object-cover"
-                            />
-
-                            {/* Floating Card 1 */}
-                            <motion.div
-                                animate={{ y: [0, -10, 0] }}
-                                transition={{ duration: 4, repeat: Infinity }}
-                                className="absolute -bottom-8 -left-8 bg-white p-4 rounded-xl shadow-lg flex items-center gap-3"
-                            >
-                                <div className="bg-green-100 p-2 rounded-lg">
-                                    <Clock className="w-6 h-6 text-green-600" />
-                                </div>
-                                <div>
-                                    <p className="text-xs text-gray-500 uppercase font-semibold">Thời gian học tập</p>
-                                    <p className="font-bold text-dark">2.5 giờ hôm nay</p>
-                                </div>
-                            </motion.div>
-
-                            {/* Floating Card 2 - Student Review */}
-                            <motion.div
-                                animate={{ y: [0, 10, 0] }}
-                                transition={{ duration: 5, repeat: Infinity }}
-                                className="absolute top-10 -right-10 bg-white p-4 rounded-xl shadow-xl max-w-[220px]"
-                            >
-                                <div className="flex gap-0.5 mb-2">
-                                    {[1, 2, 3, 4, 5].map(i => (
-                                        <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
-                                    ))}
-                                </div>
-                                <p className="text-sm text-gray-700 leading-snug italic mb-3">
-                                    "Nhờ có gia sư trên TutorHub, em đã cải thiện điểm Toán từ 5 lên 8.5!"
-                                </p>
-                                <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
-                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white text-xs font-bold">
-                                        M
-                                    </div>
-                                    <div>
-                                        <p className="font-bold text-xs text-dark">Minh Anh</p>
-                                        <p className="text-[10px] text-gray-400">Học sinh lớp 11</p>
-                                    </div>
-                                </div>
-                            </motion.div>
+                        <div className="relative z-10 bg-white rounded-3xl shadow-2xl p-4 rotate-2 hover:rotate-0 transition-transform duration-500 overflow-hidden h-[500px]">
+                            <AnimatePresence mode="wait">
+                                <motion.img
+                                    key={currentImageIndex}
+                                    src={images[currentImageIndex]}
+                                    alt="Student learning"
+                                    initial={{ opacity: 0, scale: 1.05 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    transition={{ duration: 0.8 }}
+                                    className="rounded-2xl w-full h-full object-cover absolute top-0 left-0 p-4"
+                                />
+                            </AnimatePresence>
                         </div>
                     </motion.div>
                 </div>
