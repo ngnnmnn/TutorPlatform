@@ -78,9 +78,28 @@ const bookingSchema = mongoose.Schema({
     // Overall status
     status: {
         type: String,
-        enum: ['pending', 'tutor_confirmed', 'approved', 'rejected', 'cancelled', 'completed'],
+        enum: ['pending', 'tutor_confirmed', 'approved', 'rejected', 'cancelled', 'completed', 'cancel_pending'],
         default: 'pending'
     },
+    cancellationReason: {
+        type: String,
+        default: ''
+    },
+    cancellationEvidence: [{
+        type: String
+    }],
+    cancellationRequestedBy: {
+        type: String,
+        enum: ['student', 'tutor', ''],
+        default: ''
+    },
+    homework: {
+        type: String,
+        default: ''
+    },
+    homeworkFiles: [{
+        type: String
+    }],
     createdAt: {
         type: Date,
         default: Date.now

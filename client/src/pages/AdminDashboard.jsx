@@ -39,6 +39,10 @@ const AdminDashboard = () => {
     const [meetLink, setMeetLink] = useState('');
     const [adminNote, setAdminNote] = useState('');
 
+    // Cancellation Management State
+    const [selectedCancelRequest, setSelectedCancelRequest] = useState(null);
+    const [cancelAdminNote, setCancelAdminNote] = useState('');
+
     // Combo Orders State
     const [orders, setOrders] = useState([]);
 
@@ -194,6 +198,30 @@ const AdminDashboard = () => {
         }
     };
 
+    const handleCancelRequestApprove = async (bookingId, approved) => {
+        if (!window.confirm(approved ? 'Duyệt yêu cầu hủy lịch này?' : 'Từ chối yêu cầu hủy lịch này?')) return;
+
+        setActionLoading(true);
+        try {
+            await axios.put(
+                `${API_URL}/api/bookings/${bookingId}/admin-approve-cancellation`,
+                {
+                    approved,
+                    adminNote: cancelAdminNote
+                },
+                getConfig()
+            );
+            fetchBookings();
+            setSelectedCancelRequest(null);
+            setCancelAdminNote('');
+            alert(approved ? 'Đã duyệt yêu cầu hủy!' : 'Đã từ chối yêu cầu hủy!');
+        } catch (error) {
+            alert(error.response?.data?.message || 'Có lỗi xảy ra');
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
     const getStatusBadge = (status) => {
         if (status === 1) return <span className="px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800 flex items-center gap-1"><Clock className="w-3 h-3" /> Chờ duyệt</span>;
         if (status === 2) return <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800 flex items-center gap-1"><CheckCircle className="w-3 h-3" /> Đã duyệt</span>;
@@ -205,6 +233,7 @@ const AdminDashboard = () => {
         const statusConfig = {
             pending: { label: 'Chờ gia sư', color: 'bg-yellow-100 text-yellow-800' },
             tutor_confirmed: { label: 'Chờ Admin duyệt', color: 'bg-blue-100 text-blue-800' },
+            cancel_pending: { label: 'Yêu cầu hủy', color: 'bg-orange-100 text-orange-800' },
             approved: { label: 'Đã duyệt', color: 'bg-green-100 text-green-800' },
             rejected: { label: 'Đã hủy/Từ chối', color: 'bg-red-100 text-red-800' },
             booked: { label: 'Đã đặt', color: 'bg-purple-100 text-purple-800' },
@@ -414,6 +443,16 @@ const AdminDashboard = () => {
                                                                 className="text-white bg-red-600 hover:bg-red-700 px-3 py-1 rounded-lg text-xs"
                                                             >
                                                                 Từ chối
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                    {booking.status === 'cancel_pending' && (
+                                                        <div className="flex justify-end gap-2 mt-2">
+                                                            <button
+                                                                onClick={() => setSelectedCancelRequest(booking)}
+                                                                className="text-white bg-orange-500 hover:bg-orange-600 px-3 py-1 rounded-lg text-xs"
+                                                            >
+                                                                Xem chi tiết
                                                             </button>
                                                         </div>
                                                     )}
@@ -652,6 +691,81 @@ const AdminDashboard = () => {
                                 className="flex-1 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
                             >
                                 Duyệt
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Cancel Request Modal */}
+            {selectedCancelRequest && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+                    <div className="bg-white rounded-2xl max-w-lg w-full p-6 my-8">
+                        <h3 className="text-xl font-bold mb-4">Duyệt Yêu Cầu Hủy Lịch</h3>
+                        
+                        <div className="bg-orange-50 p-4 rounded-xl mb-6 text-sm">
+                            <h4 className="font-semibold text-orange-800 mb-2 border-b border-orange-200 pb-1">Thông tin chi tiết</h4>
+                            <div className="space-y-1 mt-2 text-gray-700">
+                                <p><strong>Lớp học:</strong> {selectedCancelRequest.subject} ({selectedCancelRequest.learningMode === 'online' ? 'Online' : 'Offline'})</p>
+                                <p><strong>Học viên:</strong> {selectedCancelRequest.student?.full_name} ({selectedCancelRequest.student?.email})</p>
+                                <p><strong>Gia sư (người hủy):</strong> {selectedCancelRequest.tutor?.full_name} ({selectedCancelRequest.tutor?.email})</p>
+                                <p><strong>Lịch dự kiến:</strong> {new Date(selectedCancelRequest.date).toLocaleDateString('vi-VN')} lúc {selectedCancelRequest.startTime}</p>
+                            </div>
+                        </div>
+
+                        <div className="mb-4">
+                            <h4 className="font-semibold text-gray-800 mb-2">Lý do hủy:</h4>
+                            <p className="bg-gray-50 border border-gray-100 rounded-lg p-3 text-sm text-gray-700">
+                                {selectedCancelRequest.cancellationReason || 'Không có lý do'}
+                            </p>
+                        </div>
+
+                        <div className="mb-6">
+                            <h4 className="font-semibold text-gray-800 mb-2">Hình ảnh minh chứng:</h4>
+                            {selectedCancelRequest.cancellationEvidence && selectedCancelRequest.cancellationEvidence.length > 0 ? (
+                                <div className="grid grid-cols-2 gap-3">
+                                    {selectedCancelRequest.cancellationEvidence.map((imgUrl, idx) => (
+                                        <a key={idx} href={imgUrl} target="_blank" rel="noopener noreferrer" className="block w-full h-32 rounded-lg overflow-hidden border border-gray-200">
+                                            <img src={imgUrl} alt={`evidence-${idx}`} className="w-full h-full object-cover hover:scale-105 transition-transform" />
+                                        </a>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-gray-500 text-sm italic">Không có hình ảnh</p>
+                            )}
+                        </div>
+
+                        <div className="mb-6">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Ghi chú xử lý (Admin):</label>
+                            <input
+                                type="text"
+                                value={cancelAdminNote}
+                                onChange={(e) => setCancelAdminNote(e.target.value)}
+                                placeholder="Tùy chọn..."
+                                className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary"
+                            />
+                        </div>
+
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setSelectedCancelRequest(null)}
+                                className="flex-1 py-2.5 bg-gray-100 font-medium text-gray-700 rounded-xl hover:bg-gray-200 transition-colors"
+                            >
+                                Đóng
+                            </button>
+                            <button
+                                onClick={() => handleCancelRequestApprove(selectedCancelRequest._id, false)}
+                                disabled={actionLoading}
+                                className="flex-1 py-2.5 bg-red-600 text-white font-medium rounded-xl hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                            >
+                                Từ chối Hủy (Giữ lịch)
+                            </button>
+                            <button
+                                onClick={() => handleCancelRequestApprove(selectedCancelRequest._id, true)}
+                                disabled={actionLoading}
+                                className="flex-1 py-2.5 bg-green-600 text-white font-medium rounded-xl hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                            >
+                                Duyệt Hủy Lịch
                             </button>
                         </div>
                     </div>

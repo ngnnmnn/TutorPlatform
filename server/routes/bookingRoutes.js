@@ -23,7 +23,9 @@ router.get('/all', protect, getAllBookings);  // Admin only (controller checks)
 router.get('/:id', protect, getBookingById);
 router.put('/:id/tutor-confirm', protect, tutorConfirmBooking);
 router.put('/:id/admin-approve', protect, adminApproveBooking);
+router.put('/:id/admin-approve-cancellation', protect, adminApproveCancellation);
 router.put('/:id/cancel', protect, cancelBooking);
 router.put('/:id/complete', protect, completeBooking);
+router.put('/:id/homework', protect, updateHomework);
 
 module.exports = router;

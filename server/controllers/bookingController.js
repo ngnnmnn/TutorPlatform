@@ -384,24 +384,126 @@ const cancelBooking = async (req, res) => {
             return res.status(400).json({ message: 'Cannot cancel completed booking' });
         }
 
-        booking.status = 'cancelled';
+        const isStudent = booking.student.toString() === req.user.id;
+        booking.cancellationRequestedBy = isStudent ? 'student' : 'tutor';
+
+        if (isStudent) {
+            // Student cancels instantly
+            booking.status = 'cancelled';
+        } else {
+            // Tutor requests cancellation
+            const { reason, evidence } = req.body;
+            if (!reason || !evidence || evidence.length === 0) {
+                return res.status(400).json({ message: 'Tutor must provide a reason and evidence to cancel.' });
+            }
+            booking.cancellationReason = reason;
+            booking.cancellationEvidence = evidence; // Expecting array of URLs
+            booking.status = 'cancel_pending';
+        }
+
         const updatedBooking = await booking.save();
 
         // Notify the other party
-        const isStudent = booking.student.toString() === req.user.id;
         const recipientId = isStudent ? booking.tutor : booking.student;
-        const senderName = isStudent ? 'Học viên' : 'Gia sư'; // Ideally fetch name
 
-        await createNotification({
-            recipient: recipientId,
-            sender: req.user.id,
-            type: 'booking_cancelled',
-            title: 'Lịch học bị hủy',
-            message: `${senderName} đã hủy lịch học môn ${booking.subject}.`,
-            link: '/my-bookings'
-        });
+        if (isStudent) {
+            await createNotification({
+                recipient: recipientId,
+                sender: req.user.id,
+                type: 'booking_cancelled',
+                title: 'Lịch học bị hủy',
+                message: `Học viên đã hủy lịch học môn ${booking.subject}.`,
+                link: '/my-bookings'
+            });
+        } else {
+            const admins = await Account.find({ role: 'admin' });
+            for (const admin of admins) {
+                await createNotification({
+                    recipient: admin._id,
+                    sender: req.user.id,
+                    type: 'booking_cancel_request',
+                    title: 'Yêu cầu hủy lịch học',
+                    message: `Gia sư yêu cầu hủy lịch học môn ${booking.subject}. Vui lòng kiểm tra và duyệt.`,
+                    link: '/admin'
+                });
+            }
+        }
 
         res.json(updatedBooking);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server Error' });
+    }
+};
+
+// @desc    Admin approve/reject cancellation request
+// @route   PUT /api/bookings/:id/admin-approve-cancellation
+// @access  Private (Admin)
+const adminApproveCancellation = async (req, res) => {
+    try {
+        const { approved, adminNote } = req.body;
+        const booking = await Booking.findById(req.params.id);
+
+        if (!booking) {
+            return res.status(404).json({ message: 'Booking not found' });
+        }
+
+        // Check if admin
+        const user = await Account.findById(req.user.id);
+        if (user.role !== 'admin') {
+            return res.status(403).json({ message: 'Not authorized' });
+        }
+
+        if (booking.status !== 'cancel_pending') {
+            return res.status(400).json({ message: 'Booking is not pending cancellation' });
+        }
+
+        if (approved) {
+            booking.status = 'cancelled';
+            booking.adminNote = adminNote || booking.adminNote;
+        } else {
+            booking.status = 'approved'; 
+            booking.cancellationReason = '';
+            booking.cancellationEvidence = [];
+            booking.cancellationRequestedBy = '';
+            booking.adminNote = adminNote || booking.adminNote;
+        }
+
+        const updatedBooking = await booking.save();
+
+        const populatedBooking = await Booking.findById(updatedBooking._id)
+            .populate('tutor', 'full_name email img')
+            .populate('student', 'full_name email img');
+
+        if (approved) {
+            await createNotification({
+                recipient: booking.student,
+                sender: req.user.id,
+                type: 'booking_cancelled',
+                title: 'Lịch học đã bị hủy',
+                message: `Yêu cầu hủy lịch học môn ${booking.subject} từ Gia sư đã được phê duyệt.`,
+                link: '/my-bookings'
+            });
+            await createNotification({
+                recipient: booking.tutor,
+                sender: req.user.id,
+                type: 'booking_cancelled',
+                title: 'Yêu cầu hủy lịch được duyệt',
+                message: `Yêu cầu hủy lịch học môn ${booking.subject} đã được Admin duyệt.`,
+                link: '/my-bookings'
+            });
+        } else {
+            await createNotification({
+                recipient: booking.tutor,
+                sender: req.user.id,
+                type: 'booking_cancel_rejected',
+                title: 'Yêu cầu hủy lịch bị từ chối',
+                message: `Yêu cầu hủy lịch học môn ${booking.subject} bị Admin từ chối. Lịch học vẫn diễn ra bình thường.`,
+                link: '/my-bookings'
+            });
+        }
+
+        res.json(populatedBooking);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server Error' });
@@ -535,6 +637,52 @@ const completeBooking = async (req, res) => {
     }
 };
 
+// @desc    Assign or update homework for a booking
+// @route   PUT /api/bookings/:id/homework
+// @access  Private (Tutor only)
+const updateHomework = async (req, res) => {
+    try {
+        const { homework, homeworkFiles } = req.body;
+        const booking = await Booking.findById(req.params.id);
+
+        if (!booking) {
+            return res.status(404).json({ message: 'Booking not found' });
+        }
+
+        // Only the assigned tutor can update homework
+        if (booking.tutor.toString() !== req.user.id) {
+            return res.status(403).json({ message: 'Not authorized to assign homework for this booking' });
+        }
+
+        // Typically, homework is assigned after or during approved/completed bookings
+        if (!['approved', 'completed'].includes(booking.status)) {
+            return res.status(400).json({ message: 'Homework can only be assigned to approved or completed bookings' });
+        }
+
+        booking.homework = homework || booking.homework;
+        if (homeworkFiles) {
+            booking.homeworkFiles = homeworkFiles;
+        }
+
+        const updatedBooking = await booking.save();
+
+        // Notify the student
+        await createNotification({
+            recipient: booking.student,
+            sender: req.user.id,
+            type: 'homework_updated',
+            title: 'Cập nhật bài tập',
+            message: `Gia sư đã cập nhật bài tập cho môn ${booking.subject}.`,
+            link: '/my-bookings'
+        });
+
+        res.json(updatedBooking);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server Error' });
+    }
+};
+
 module.exports = {
     createBooking,
     getMyBookings,
@@ -542,7 +690,9 @@ module.exports = {
     tutorConfirmBooking,
     adminApproveBooking,
     cancelBooking,
+    adminApproveCancellation,
     getSchedule,
     getBookingById,
-    completeBooking
+    completeBooking,
+    updateHomework
 };
