@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Navbar from '../components/Navbar';
@@ -14,7 +14,8 @@ import {
     ChevronRight,
     AlertCircle,
     TrendingUp,
-    Shield
+    Shield,
+    ArrowUpDown
 } from 'lucide-react';
 import { API_URL } from '../config';
 
@@ -45,6 +46,9 @@ const AdminDashboard = () => {
 
     // Combo Orders State
     const [orders, setOrders] = useState([]);
+
+    // Booking sorting state
+    const [bookingSortBy, setBookingSortBy] = useState('date_desc');
 
     const user = JSON.parse(localStorage.getItem('user'));
 
@@ -106,7 +110,7 @@ const AdminDashboard = () => {
     const fetchBookings = async () => {
         try {
             setLoading(true);
-            const res = await axios.get(`${API_URL}/api/bookings/all`, getConfig());
+            const res = await axios.get(`${API_URL}/api/bookings/all?limit=0`, getConfig());
             setBookings(res.data.bookings || []);
         } catch (error) {
             console.error('Error fetching bookings:', error);
@@ -114,6 +118,34 @@ const AdminDashboard = () => {
             setLoading(false);
         }
     };
+
+    // Sort bookings based on selected sort option
+    const sortedBookings = useMemo(() => {
+        const sorted = [...bookings];
+        switch (bookingSortBy) {
+            case 'date_asc':
+                sorted.sort((a, b) => new Date(a.date) - new Date(b.date) || (a.startTime || '').localeCompare(b.startTime || ''));
+                break;
+            case 'date_desc':
+                sorted.sort((a, b) => new Date(b.date) - new Date(a.date) || (b.startTime || '').localeCompare(a.startTime || ''));
+                break;
+            case 'tutor_asc':
+                sorted.sort((a, b) => (a.tutor?.full_name || '').localeCompare(b.tutor?.full_name || ''));
+                break;
+            case 'tutor_desc':
+                sorted.sort((a, b) => (b.tutor?.full_name || '').localeCompare(a.tutor?.full_name || ''));
+                break;
+            case 'student_asc':
+                sorted.sort((a, b) => (a.student?.full_name || '').localeCompare(b.student?.full_name || ''));
+                break;
+            case 'student_desc':
+                sorted.sort((a, b) => (b.student?.full_name || '').localeCompare(a.student?.full_name || ''));
+                break;
+            default:
+                break;
+        }
+        return sorted;
+    }, [bookings, bookingSortBy]);
 
     const fetchOrders = async () => {
         try {
@@ -384,83 +416,114 @@ const AdminDashboard = () => {
                                     <p>Không có booking nào</p>
                                 </div>
                             ) : (
-                                <table className="min-w-full divide-y divide-gray-100">
-                                    <thead className="bg-gray-50">
-                                        <tr>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Học viên</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Gia sư</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Môn/Thời gian</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Hình thức</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Giá</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Trạng thái</th>
-                                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Hành động</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="bg-white divide-y divide-gray-100">
-                                        {bookings.map(booking => (
-                                            <tr key={booking._id} className="hover:bg-gray-50">
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="flex items-center">
-                                                        <div className="ml-3">
+                                <div>
+                                    {/* Booking toolbar: count + sort */}
+                                    <div className="px-6 py-3 bg-gray-50 border-b border-gray-100 flex items-center justify-between flex-wrap gap-3">
+                                        <span className="text-sm font-medium text-gray-700">
+                                            Tổng: <span className="text-indigo-600 font-bold">{bookings.length}</span> booking
+                                        </span>
+                                        <div className="flex items-center gap-2">
+                                            <ArrowUpDown className="w-4 h-4 text-gray-400" />
+                                            <select
+                                                value={bookingSortBy}
+                                                onChange={(e) => setBookingSortBy(e.target.value)}
+                                                className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                            >
+                                                <option value="date_desc">Ngày (mới → cũ)</option>
+                                                <option value="date_asc">Ngày (cũ → mới)</option>
+                                                <option value="tutor_asc">Gia sư (A → Z)</option>
+                                                <option value="tutor_desc">Gia sư (Z → A)</option>
+                                                <option value="student_asc">Học viên (A → Z)</option>
+                                                <option value="student_desc">Học viên (Z → A)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <table className="min-w-full divide-y divide-gray-100">
+                                        <thead className="bg-gray-50">
+                                            <tr>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">#</th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Học viên</th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Gia sư</th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Môn/Thời gian</th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Lớp</th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Hình thức</th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Giá</th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Trạng thái</th>
+                                                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Hành động</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="bg-white divide-y divide-gray-100">
+                                            {sortedBookings.map((booking, index) => (
+                                                <tr key={booking._id} className="hover:bg-gray-50">
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
+                                                        {index + 1}
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <div>
                                                             <p className="text-sm font-medium text-gray-900">{booking.student?.full_name}</p>
                                                             <p className="text-xs text-gray-500">{booking.student?.email}</p>
                                                         </div>
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="text-sm text-gray-900">{booking.tutor?.full_name}</div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="text-sm text-gray-900 font-medium">{booking.subject}</div>
-                                                    <div className="text-xs text-gray-500">
-                                                        {new Date(booking.date).toLocaleDateString('vi-VN')} • {booking.startTime}-{booking.endTime}
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    {booking.learningMode === 'online' ? 'Online' : 'Offline'}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-primary">
-                                                    {(booking.price || booking.orderId?.comboID?.price)?.toLocaleString('vi-VN')} đ
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    {getBookingStatusBadge(booking.status)}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                    {['pending', 'tutor_confirmed'].includes(booking.status) && (
-                                                        <div className="flex justify-end gap-2">
-                                                            <button
-                                                                onClick={() => setSelectedBooking(booking)}
-                                                                className="text-white bg-green-600 hover:bg-green-700 px-3 py-1 rounded-lg text-xs"
-                                                            >
-                                                                Duyệt
-                                                            </button>
-                                                            <button
-                                                                onClick={() => {
-                                                                    if (window.confirm('Từ chối lịch booking này?')) {
-                                                                        handleBookingApprove(booking._id, false);
-                                                                    }
-                                                                }}
-                                                                className="text-white bg-red-600 hover:bg-red-700 px-3 py-1 rounded-lg text-xs"
-                                                            >
-                                                                Từ chối
-                                                            </button>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <div className="text-sm text-gray-900">{booking.tutor?.full_name}</div>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <div className="text-sm text-gray-900 font-medium">{booking.subject}</div>
+                                                        <div className="text-xs text-gray-500">
+                                                            {new Date(booking.date).toLocaleDateString('vi-VN')} • {booking.startTime}-{booking.endTime}
                                                         </div>
-                                                    )}
-                                                    {booking.status === 'cancel_pending' && (
-                                                        <div className="flex justify-end gap-2 mt-2">
-                                                            <button
-                                                                onClick={() => setSelectedCancelRequest(booking)}
-                                                                className="text-white bg-orange-500 hover:bg-orange-600 px-3 py-1 rounded-lg text-xs"
-                                                            >
-                                                                Xem chi tiết
-                                                            </button>
-                                                        </div>
-                                                    )}
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${booking.grade === '12' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'}`}>
+                                                            Lớp {booking.grade}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                        {booking.learningMode === 'online' ? 'Online' : 'Offline'}
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-primary">
+                                                        {(booking.price || booking.orderId?.comboID?.price || 0).toLocaleString('vi-VN')} đ
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        {getBookingStatusBadge(booking.status)}
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                        {['pending', 'tutor_confirmed'].includes(booking.status) && (
+                                                            <div className="flex justify-end gap-2">
+                                                                <button
+                                                                    onClick={() => setSelectedBooking(booking)}
+                                                                    className="text-white bg-green-600 hover:bg-green-700 px-3 py-1 rounded-lg text-xs"
+                                                                >
+                                                                    Duyệt
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => {
+                                                                        if (window.confirm('Từ chối lịch booking này?')) {
+                                                                            handleBookingApprove(booking._id, false);
+                                                                        }
+                                                                    }}
+                                                                    className="text-white bg-red-600 hover:bg-red-700 px-3 py-1 rounded-lg text-xs"
+                                                                >
+                                                                    Từ chối
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                        {booking.status === 'cancel_pending' && (
+                                                            <div className="flex justify-end gap-2 mt-2">
+                                                                <button
+                                                                    onClick={() => setSelectedCancelRequest(booking)}
+                                                                    className="text-white bg-orange-500 hover:bg-orange-600 px-3 py-1 rounded-lg text-xs"
+                                                                >
+                                                                    Xem chi tiết
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
                             )
                         ) : activeTab === 'orders' ? (
                             /* Orders Table */

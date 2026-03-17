@@ -172,28 +172,16 @@ const getMyBookings = async (req, res) => {
 // @access  Private (Admin)
 const getAllBookings = async (req, res) => {
     try {
-        const { status, page = 1, limit = 10 } = req.query;
-        const skip = (page - 1) * limit;
+        const { status, page = 1, limit = 0 } = req.query;
         let query = {};
 
         if (status) {
             query.status = status;
         }
 
-        const bookings = await Booking.find(query)
-            .populate('tutor', 'full_name email img')
-            .populate('student', 'full_name email img phone')
-            .populate({
-                path: 'orderId',
-                populate: {
-                    path: 'comboID',
-                    select: 'price combo_name'
-                }
-            })
-            .sort({ createdAt: -1 });
-
         const total = await Booking.countDocuments(query);
-        const paginatedBookings = await Booking.find(query)
+
+        let bookingsQuery = Booking.find(query)
             .populate('tutor', 'full_name email img')
             .populate('student', 'full_name email img phone')
             .populate({
@@ -203,15 +191,21 @@ const getAllBookings = async (req, res) => {
                     select: 'price combo_name'
                 }
             })
-            .sort({ createdAt: -1 })
-            .skip(skip)
-            .limit(Number(limit));
+            .sort({ date: -1, startTime: -1 });
+
+        // If limit > 0, apply pagination; otherwise return all
+        if (Number(limit) > 0) {
+            const skip = (Number(page) - 1) * Number(limit);
+            bookingsQuery = bookingsQuery.skip(skip).limit(Number(limit));
+        }
+
+        const bookings = await bookingsQuery;
 
         res.json({
-            bookings: paginatedBookings,
+            bookings,
             total,
             page: Number(page),
-            pages: Math.ceil(total / limit)
+            pages: Number(limit) > 0 ? Math.ceil(total / Number(limit)) : 1
         });
     } catch (error) {
         console.error(error);
