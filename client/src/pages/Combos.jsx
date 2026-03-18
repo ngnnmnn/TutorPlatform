@@ -20,35 +20,6 @@ const Combos = () => {
     // UPDATE: Using static data matching the seed for guaranteed display as I didn't verify a GET /api/combos endpoint.
     const combos = [
         {
-            _id: '5slot',
-            combo_name: 'Gói 5 Slot',
-            description: 'Gói tiết kiệm với 5 slot booking.',
-            slot: 5,
-            price: 700000,
-            features: [
-                '5 lượt booking',
-                'Tiết kiệm 50,000đ',
-                'Ưu tiên hỗ trợ',
-                'Không giới hạn thời gian'
-            ],
-            isPopular: false
-        },
-        {
-            _id: '10slot',
-            combo_name: 'Gói 10 Slot',
-            description: 'Gói cao cấp nhất với 10 slot booking.',
-            slot: 10,
-            price: 1350000,
-            features: [
-                '10 lượt booking',
-                'Tiết kiệm 150,000đ',
-                'Hỗ trợ 24/7',
-                'Huy hiệu VIP',
-                'Không giới hạn thời gian'
-            ],
-            isPopular: true
-        },
-        {
             _id: 'grade1011',
             combo_name: 'Học phí Lớp 10 & 11',
             description: 'Dành cho học sinh khối 10 và 11.',
