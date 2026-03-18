@@ -66,7 +66,7 @@ const Combos = () => {
                     </p>
                 </div>
 
-                <div className="flex flex-wrap justify-center gap-6 max-w-7xl mx-auto">
+                <div className="flex justify-center gap-6 max-w-7xl mx-auto">
                     {sortedCombos.map((combo) => {
                         const isPopular = combo.slot === maxSlots && combo.slot > 1;
                         return (
