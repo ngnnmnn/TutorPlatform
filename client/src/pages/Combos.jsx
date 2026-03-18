@@ -66,11 +66,11 @@ const Combos = () => {
                     </p>
                 </div>
 
-                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
+                <div className="flex flex-wrap justify-center gap-6 max-w-7xl mx-auto">
                     {sortedCombos.map((combo) => {
                         const isPopular = combo.slot === maxSlots && combo.slot > 1;
                         return (
-                            <div key={combo._id} className={`relative bg-white rounded-2xl shadow-xl overflow-hidden transition-all hover:scale-105 border-2 ${isPopular ? 'border-primary' : 'border-transparent'}`}>
+                            <div key={combo._id} className={`w-full max-w-[380px] relative bg-white rounded-2xl shadow-xl overflow-hidden transition-all hover:scale-105 border-2 ${isPopular ? 'border-primary' : 'border-transparent'}`}>
                                 {isPopular && (
                                     <div className="absolute top-0 right-0 bg-primary text-white text-xs font-bold px-3 py-1 rounded-bl-lg">
                                         PHỔ BIẾN NHẤT
